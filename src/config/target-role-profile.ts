@@ -1,68 +1,103 @@
 export const TARGET_ROLE_PROFILE = `
 ## Candidate Profile
 
-**Target Role**: Senior Backend Software Engineer / Staff Engineer
-**Years of Experience**: 7+ years
+**Name**: Joshua Proctor
+**Location**: Charlotte, NC (open to relocation)
+**Target Role**: Senior Software Engineer / Tech Lead / Software Engineer
+**Years of Experience**: 5+
 
 ## Preferred Stack
 
-- **Primary**: TypeScript / Node.js (required)
-- **Secondary**: PostgreSQL, Redis, REST APIs, GraphQL
-- **Nice to have**: AWS/GCP, Kafka, Docker/Kubernetes
-- **AI/ML adjacent**: experience with LLM APIs or data pipelines is a plus
+- **Primary**: TypeScript, Node.js, NestJS, Express, AWS (required)
+- **Secondary**: PostgreSQL, Redis, REST APIs, GraphQL, Docker, Terraform
+- **Observability**: New Relic, structured alerting, runbook authoring
+- **AI Tooling**: Claude Code, Cursor, OpenAI Codex, Custom Built MCP Servers, LLMs, Prompt Engineering
+- **Open to**: Go, Python/FastAPI, and other modern backend stacks where distributed systems and API design experience transfers
+- **Willing to ramp**: Java (some background), Python (strong CS fundamentals, no current project work)
+- **Avoid**: Greenfield roles in C++, Rust, or languages with no transferable background unless significant ramp time is explicitly budgeted
 
 ## Seniority Target
 
-- Senior (L4/L5 equivalent) or Staff (L6 equivalent)
+- Senior Software Engineer (L4/L5 equivalent)
 - Tech Lead roles considered if IC-heavy (not purely managerial)
-- Principal roles considered if at a fast-growing company
+- Software Engineer (non-senior) considered at strong companies — especially with a referral
+- **Excluded**: Staff Engineer, Engineering Manager, Principal Engineer
 
 ## Location Requirements
 
 - **Preferred**: Fully remote (US)
-- **Acceptable**: Remote-friendly with optional office in Charlotte, NC
-- **Not acceptable**: On-site only, non-US roles
+- **Acceptable**: Remote-friendly with optional office access, or hybrid where remote is genuinely equal (not remote-tolerated with in-office promotion bias)
+- **Open to**: Relocation — evaluate company quality carefully, relocation should be worth it
+- **Not acceptable**: On-site only (5 days/week with no remote option), non-US roles
 
 ## Salary Floor
 
-- **Minimum**: $170,000 base
-- **Target**: $190,000–$220,000 base
+- **Minimum**: $130,000 base (USD)
+- **Negotiable upward** based on total comp, equity, and company stage
 - If salary is not listed, do not penalize — flag as unknown
 
-## Company Preferences
+## Target Industries
 
-- **Green flags**: Fintech, developer tools, infrastructure, data platforms, Series B or later / public
-- **Amber flags**: Early-stage (pre-Series B), consumer social, gaming
-- **Red flags**: Crypto/Web3 (unless infrastructure), defense/government contracting
+- Fintech / Finance (strongest fit — aligns with existing experience)
+- Developer Tools / SaaS
+- AI / ML Platforms
+- Medical (open to)
+
+## Company Size
+
+- Scale-up: 50–500 employees
+- Mid-size: 500–5,000 employees
+- Enterprise: 5,000+ employees
 
 ## Role Flag Criteria
 
 ### Green Flags (positive signals)
-- TypeScript as primary backend language
-- Node.js in core stack
-- Remote-first culture explicitly stated
-- Salary at or above floor
-- Company is post-Series B or publicly traded
-- Strong engineering culture signals (open source, eng blog, conference talks)
+- TypeScript and/or Node.js as primary backend language
+- Distributed systems at scale — high-availability platforms, large user bases, meaningful infrastructure complexity
+- Full backend ownership: API design through deployment, observability, and on-call
+- Remote-first or remote-mature culture explicitly stated
+- Salary at or above $130K floor
+- Series B or later, profitable, or well-funded with clear runway
+- Strong engineering culture signals: eng blog, open source contributions, ADRs, public technical writing
+- Mentorship and knowledge-sharing recognized and rewarded
+- Clear career progression: defined leveling, internal promotion history
 
-### Amber Flags (worth researching)
+### Amber Flags (worth researching — evaluate case by case)
 - Salary not listed
-- Hybrid or flexible remote (not fully remote)
-- Stack mentions Java/Kotlin/Go as primary (not TypeScript)
-- Early-stage company (< Series B)
-- Role is Tech Lead with unclear IC/management split
+- Hybrid or flexible remote — verify remote is genuinely equal, not in-office biased
+- Java-primary roles — on resume but not recent project work, flag for technical screen prep
+- Python-primary roles — not currently on resume, only pursue if role explicitly says willing to ramp or other requirements are very strong match
+- IAM / Authorization domain — adjacent experience (WAF, cloud security) but not deep IAM
+- Startup with 1–50 employees — high upside but higher risk, evaluate funding stage and runway carefully
+- Tech Lead role with unclear IC vs. management split
+- Relocation required — open to it but evaluate carefully
 
 ### Red Flags (likely skip)
-- On-site only or relocation required
-- Salary explicitly below floor
-- Crypto/Web3 product focus
-- Title indicates junior/mid level
+- On-site only with no remote option
+- Salary explicitly below $130K floor
+- Consulting or agency work — billable hours, client-facing delivery pressure, frequent context-switching
+- Contract or non-permanent positions
+- Crypto / Web3 product focus (unless infrastructure layer)
+- Title indicates junior or mid level with no path to senior
+- Recent or ongoing layoffs — especially multiple rounds in last 12–18 months
+- Glassdoor overall rating below 3.5 or consistent pattern of management / burnout / transparency complaints
+- Legacy-only stack (COBOL, old .NET, unmaintained PHP) with no modernization roadmap
 - Role requires security clearance
+
+## Key Differentiators to Weight Positively
+
+When a role description signals any of the following, increase fit score:
+- Involvement before tickets exist — engineers in stakeholder conversations, shaping product direction
+- Bridge between engineering and business stakeholders
+- Observability, runbooks, or incident response ownership mentioned
+- Vendor evaluation or third-party API integration complexity
+- Mentorship or team development as explicit part of the role
+- ADRs, RFCs, or architectural documentation culture
 
 ## Scoring Guidance
 
 - **85–100**: Strong match on stack, remote, seniority, and salary — recommend apply
-- **70–84**: Good match with minor gaps (e.g. salary unknown, partial remote) — recommend research
-- **50–69**: Some alignment but notable gaps — recommend research or skip depending on flags
-- **Below 50**: Material mismatches on multiple dimensions — recommend skip
+- **70–84**: Good match with minor gaps (e.g. salary unknown, partial remote, one stack gap) — recommend research
+- **50–69**: Some alignment but notable gaps on multiple dimensions — recommend research or skip depending on flags
+- **Below 50**: Material mismatches on stack, location, seniority, or multiple red flags — recommend skip
 `;

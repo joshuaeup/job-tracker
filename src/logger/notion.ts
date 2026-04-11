@@ -1,5 +1,6 @@
 import { Client } from "@notionhq/client";
 import type { ScoredJob } from "../types/index.js";
+import { createLogger } from "../lib/logger.js";
 
 const NOTION_RATE_DELAY_MS = 400;
 
@@ -80,13 +81,13 @@ export async function logAllToNotion(
   databaseId: string,
   scoredJobs: ScoredJob[]
 ): Promise<number> {
+  const log = createLogger("LOG");
   let logged = 0;
 
   for (const scoredJob of scoredJobs) {
-    if (
-      scoredJob.evaluation.recommendation !== "apply" &&
-      scoredJob.evaluation.recommendation !== "research"
-    ) {
+    const { recommendation } = scoredJob.evaluation;
+
+    if (recommendation !== "apply" && recommendation !== "research") {
       continue;
     }
 
@@ -94,15 +95,17 @@ export async function logAllToNotion(
       if (logged > 0) {
         await sleep(NOTION_RATE_DELAY_MS);
       }
+
       await logToNotion(notion, databaseId, scoredJob);
-      console.log(
-        `[LOG] Logged: "${scoredJob.job.title}" at ${scoredJob.job.company} (score: ${scoredJob.evaluation.fitScore})`
+
+      log.info(
+        `Logged "${scoredJob.job.title}" at ${scoredJob.job.company} — score: ${scoredJob.evaluation.fitScore}`
       );
       logged++;
     } catch (err: unknown) {
-      console.error(
-        `[LOG] Failed to log "${scoredJob.job.title}" at ${scoredJob.job.company}:`,
-        err instanceof Error ? err.message : err
+      log.error(
+        `Failed to log "${scoredJob.job.title}" at ${scoredJob.job.company}`,
+        err
       );
     }
   }

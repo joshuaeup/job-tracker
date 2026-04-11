@@ -1,6 +1,7 @@
 import type { RawJob, NormalizedJob } from "../types/index.js";
+import { createLogger } from "../lib/logger.js";
 
-/** Returns true if `value` is a non-null, non-array object (i.e. a plain record). */
+/** Returns true if `value` is a non-null, non-array plain object. */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -37,6 +38,7 @@ function parseSalary(compensation: unknown): { min: number | null; max: number |
 
   const rawMin = compensation["min_value"] ?? compensation["minValue"];
   const rawMax = compensation["max_value"] ?? compensation["maxValue"];
+
   return {
     min: typeof rawMin === "number" ? rawMin : null,
     max: typeof rawMax === "number" ? rawMax : null,
@@ -45,6 +47,7 @@ function parseSalary(compensation: unknown): { min: number | null; max: number |
 
 function normalizeGreenhouse(job: RawJob): NormalizedJob {
   const r = job.raw;
+
   const idRaw = String(r["id"] ?? "");
   const title = String(r["title"] ?? "");
   const location = parseLocation(r["location"]);
@@ -92,6 +95,7 @@ function normalizeGreenhouse(job: RawJob): NormalizedJob {
 
 function normalizeLever(job: RawJob): NormalizedJob {
   const r = job.raw;
+
   const idRaw = String(r["id"] ?? "");
   const title = String(r["text"] ?? "");
 
@@ -105,7 +109,9 @@ function normalizeLever(job: RawJob): NormalizedJob {
   );
 
   const createdAt = r["createdAt"];
-  const postedAt = typeof createdAt === "number" ? new Date(createdAt).toISOString() : null;
+  const postedAt =
+    typeof createdAt === "number" ? new Date(createdAt).toISOString() : null;
+
   const descriptionText = String(r["descriptionPlain"] ?? "");
   const { min, max } = parseSalary(r["salaryRange"] ?? r["compensation"]);
 
@@ -127,6 +133,7 @@ function normalizeLever(job: RawJob): NormalizedJob {
 
 function normalizeAshby(job: RawJob): NormalizedJob {
   const r = job.raw;
+
   const idRaw = String(r["id"] ?? "");
   const title = String(r["title"] ?? "");
   const location = parseLocation(r["location"] ?? r["locationName"]);
@@ -171,19 +178,18 @@ const NORMALIZERS = {
  * logged and skipped without aborting the batch.
  */
 export function normalize(rawJobs: RawJob[]): NormalizedJob[] {
+  const log = createLogger("NORMALIZE");
   const results: NormalizedJob[] = [];
 
   for (const job of rawJobs) {
     try {
       const normalized = NORMALIZERS[job.source](job);
+
       if (normalized.url) {
         results.push(normalized);
       }
     } catch (err: unknown) {
-      console.error(
-        `[FILTER] Normalization error for ${job.company} (${job.source}):`,
-        err instanceof Error ? err.message : err
-      );
+      log.error(`Failed to normalize job from ${job.company} (${job.source})`, err);
     }
   }
 

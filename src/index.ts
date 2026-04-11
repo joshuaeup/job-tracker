@@ -1,6 +1,7 @@
 import { Client } from "@notionhq/client";
 import companies from "./config/companies.json" with { type: "json" };
-import { CompanyConfig, NormalizedJob, ScoredJob, RunSummary } from "./types/index.js";
+import type { CompanyConfig, NormalizedJob, ScoredJob, RunSummary } from "./types/index.js";
+import { createLogger } from "./lib/logger.js";
 import { fetchAll } from "./fetchers/index.js";
 import { normalize } from "./normalizer/index.js";
 import { filter } from "./filter/index.js";
@@ -17,7 +18,7 @@ function requireEnv(name: string): string {
 }
 
 function getEnv(name: string): string | undefined {
-  return process.env[name] || undefined;
+  return process.env[name] ?? undefined;
 }
 
 function today(): string {
@@ -25,15 +26,17 @@ function today(): string {
 }
 
 async function run(): Promise<void> {
-  console.log(`[PIPELINE] Starting job search pipeline — ${today()}`);
+  const log = createLogger("PIPELINE");
 
-  // Validate required env vars up front
+  log.info(`Starting job search pipeline — ${today()}`);
+
   const anthropicApiKey = requireEnv("ANTHROPIC_API_KEY");
   const notionToken = requireEnv("NOTION_TOKEN");
   const notionDatabaseId = requireEnv("NOTION_DATABASE_ID");
   const fitScoreThreshold = parseInt(getEnv("FIT_SCORE_THRESHOLD") ?? "60", 10);
 
   const notion = new Client({ auth: notionToken });
+
   const summary: RunSummary = {
     fetched: 0,
     filtered: 0,
@@ -44,47 +47,55 @@ async function run(): Promise<void> {
   };
 
   // ── FETCH ────────────────────────────────────────────────────────────────────
-  console.log("[FETCH] Fetching jobs from all enabled companies...");
+
   const rawJobs = await fetchAll(companies as CompanyConfig[]);
 
   // ── NORMALIZE + FILTER ───────────────────────────────────────────────────────
+
+  const filterLog = createLogger("FILTER");
+
   const normalized: NormalizedJob[] = normalize(rawJobs);
   summary.fetched = normalized.length;
-  console.log(`[FILTER] Normalized: ${normalized.length} jobs`);
+  filterLog.info(`Normalized: ${normalized.length} jobs`);
 
   const filtered: NormalizedJob[] = filter(normalized);
   summary.filtered = filtered.length;
-  console.log(`[FILTER] After filter: ${filtered.length} jobs`);
+  filterLog.info(`After filter: ${filtered.length} jobs`);
 
   // ── DEDUP ────────────────────────────────────────────────────────────────────
-  console.log("[DEDUP] Prefetching existing URLs from Notion...");
+
+  const dedupLog = createLogger("DEDUP");
+
+  dedupLog.info("Prefetching existing URLs from Notion...");
   const seenUrls = await fetchSeenUrls(notion, notionDatabaseId);
-  console.log(`[DEDUP] Known URLs: ${seenUrls.size}`);
+  dedupLog.info(`Known URLs in Notion: ${seenUrls.size}`);
 
   const newJobs = deduplicate(filtered, seenUrls);
   summary.deduplicated = newJobs.length;
-  console.log(`[DEDUP] New roles to evaluate: ${newJobs.length}`);
+  dedupLog.info(`New roles to evaluate: ${newJobs.length}`);
 
   if (newJobs.length === 0) {
-    console.log("[PIPELINE] No new roles found. Exiting.");
+    log.info("No new roles found. Exiting.");
     printSummary(summary);
     return;
   }
 
   // ── EVALUATE ─────────────────────────────────────────────────────────────────
-  console.log(`[EVAL] Evaluating ${newJobs.length} roles with Claude...`);
-  const scoredJobs: ScoredJob[] = [];
 
+  const evalLog = createLogger("EVAL");
+
+  evalLog.info(`Evaluating ${newJobs.length} roles with Claude...`);
+
+  const scoredJobs: ScoredJob[] = [];
   let evalIndex = 0;
+
   for (const job of newJobs) {
-    console.log(
-      `[EVAL] (${evalIndex + 1}/${newJobs.length}) Evaluating "${job.title}" at ${job.company}`
-    );
+    evalLog.info(`(${evalIndex + 1}/${newJobs.length}) "${job.title}" at ${job.company}`);
+
     const evaluation = await evaluate(job, anthropicApiKey, evalIndex > 0);
+
+    evalLog.info(`Score: ${evaluation.fitScore}/100 — ${evaluation.recommendation}`);
     scoredJobs.push({ job, evaluation });
-    console.log(
-      `[EVAL] Score: ${evaluation.fitScore}/100 | ${evaluation.recommendation}`
-    );
     evalIndex++;
   }
 
@@ -98,10 +109,15 @@ async function run(): Promise<void> {
   summary.skipped = scoredJobs.length - qualifying.length;
 
   // ── LOG ──────────────────────────────────────────────────────────────────────
-  console.log(`[LOG] Logging ${qualifying.length} qualifying roles to Notion...`);
+
+  const logStageLog = createLogger("LOG");
+  logStageLog.info(`Logging ${qualifying.length} qualifying roles to Notion...`);
+
   summary.logged = await logAllToNotion(notion, notionDatabaseId, qualifying);
 
   // ── NOTIFY ───────────────────────────────────────────────────────────────────
+
+  const notifyLog = createLogger("NOTIFY");
   const date = today();
   const digestJobs = qualifying.filter(
     (s) =>
@@ -113,12 +129,9 @@ async function run(): Promise<void> {
   if (slackWebhook) {
     try {
       await sendSlackDigest(slackWebhook, date, digestJobs);
-      console.log("[NOTIFY] Slack digest sent");
+      notifyLog.info("Slack digest sent");
     } catch (err: unknown) {
-      console.error(
-        "[NOTIFY] Slack send failed:",
-        err instanceof Error ? err.message : err
-      );
+      notifyLog.error("Slack send failed", err);
     }
   }
 
@@ -127,31 +140,34 @@ async function run(): Promise<void> {
   if (resendKey && notifyEmail) {
     try {
       await sendEmailDigest(resendKey, notifyEmail, date, digestJobs);
-      console.log("[NOTIFY] Email digest sent");
+      notifyLog.info("Email digest sent");
     } catch (err: unknown) {
-      console.error(
-        "[NOTIFY] Email send failed:",
-        err instanceof Error ? err.message : err
-      );
+      notifyLog.error("Email send failed", err);
     }
   }
 
   // ── SUMMARY ──────────────────────────────────────────────────────────────────
+
   printSummary(summary);
 }
 
 function printSummary(summary: RunSummary): void {
-  console.log("\n[PIPELINE] ── Run Summary ───────────────────");
-  console.log(`  Fetched:       ${summary.fetched}`);
-  console.log(`  Filtered:      ${summary.filtered}`);
-  console.log(`  Deduplicated:  ${summary.deduplicated} (new)`);
-  console.log(`  Evaluated:     ${summary.evaluated}`);
-  console.log(`  Logged:        ${summary.logged}`);
-  console.log(`  Skipped:       ${summary.skipped}`);
-  console.log("[PIPELINE] ─────────────────────────────────\n");
+  console.log("");
+  console.log("  ┌─────────────────────────────────────┐");
+  console.log("  │         Pipeline Run Summary         │");
+  console.log("  ├─────────────────────────────────────┤");
+  console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
+  console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
+  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
+  console.log(`  │  Evaluated      ${String(summary.evaluated).padStart(20)} │`);
+  console.log(`  │  Logged         ${String(summary.logged).padStart(20)} │`);
+  console.log(`  │  Skipped        ${String(summary.skipped).padStart(20)} │`);
+  console.log("  └─────────────────────────────────────┘");
+  console.log("");
 }
 
 run().catch((err: unknown) => {
-  console.error("[PIPELINE] Fatal error:", err instanceof Error ? err.message : err);
+  const log = createLogger("PIPELINE");
+  log.error("Fatal error", err);
   process.exit(1);
 });

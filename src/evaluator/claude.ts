@@ -1,4 +1,5 @@
 import type { NormalizedJob, EvaluationResult } from "../types/index.js";
+import { createLogger } from "../lib/logger.js";
 import { SYSTEM_PROMPT, buildUserMessage } from "./prompt.js";
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
@@ -56,6 +57,8 @@ export async function evaluate(
   apiKey: string,
   delayBefore = true
 ): Promise<EvaluationResult> {
+  const log = createLogger("EVAL");
+
   if (delayBefore) {
     await sleep(CLAUDE_RATE_DELAY_MS);
   }
@@ -83,24 +86,21 @@ export async function evaluate(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Claude API error ${response.status}: ${errorText}`);
+      throw new Error(`Claude API ${response.status}: ${errorText}`);
     }
 
     const data = (await response.json()) as AnthropicMessage;
     const block = data.content.find((b) => b.type === "text");
     rawText = block?.text ?? "";
   } catch (err: unknown) {
-    console.error(
-      `[EVAL] Claude API call failed for "${job.title}" at ${job.company}:`,
-      err instanceof Error ? err.message : err
-    );
+    log.error(`API call failed for "${job.title}" at ${job.company}`, err);
     return FALLBACK_RESULT;
   }
 
   try {
     return parseEvaluationResult(rawText);
   } catch {
-    console.warn(`[EVAL] First parse failed for "${job.title}", retrying...`);
+    log.warn(`First parse failed for "${job.title}" — retrying after stripping fences`);
   }
 
   try {
@@ -108,11 +108,11 @@ export async function evaluate(
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/, "")
       .trim();
+
     return parseEvaluationResult(cleaned);
   } catch {
-    console.error(
-      `[EVAL] Both parse attempts failed for "${job.title}" at ${job.company}. Raw:`,
-      rawText.slice(0, 200)
+    log.error(
+      `Both parse attempts failed for "${job.title}" at ${job.company}. Raw response: ${rawText.slice(0, 200)}`
     );
     return FALLBACK_RESULT;
   }
