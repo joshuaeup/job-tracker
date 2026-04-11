@@ -5,7 +5,8 @@ import type {
   CompanyConfig,
   NormalizedJob,
   RawJob,
-  ScoredJob,
+  // TODO: restore ScoredJob when Claude evaluation is re-enabled
+  // ScoredJob,
   RunSummary,
 } from "./types/index.js";
 import { createLogger } from "./lib/logger.js";
@@ -13,10 +14,14 @@ import { fetchAll } from "./fetchers/index.js";
 import { normalize } from "./normalizer/index.js";
 import { filter } from "./filter/index.js";
 import { fetchSeenUrls, deduplicate } from "./dedup/notion.js";
-import { evaluate } from "./evaluator/claude.js";
-import { logAllToNotion } from "./logger/notion.js";
-import { sendSlackDigest } from "./notify/slack.js";
+import { sendReviewDigest } from "./notify/slack.js";
 
+// TODO: Re-enable these imports once an Anthropic API key is available and
+// pay-per-token usage is set up. The evaluate + log stages are fully built
+// but bypassed until then.
+// import { evaluate } from "./evaluator/claude.js";
+// import { logAllToNotion } from "./logger/notion.js";
+// import { sendSlackDigest } from "./notify/slack.js";
 
 // ── Environment helpers ───────────────────────────────────────────────────────
 
@@ -86,100 +91,95 @@ async function runDedup(
   log.info(`Known URLs in Notion: ${seenUrls.size}`);
 
   const newJobs = deduplicate(jobs, seenUrls);
-  log.info(`New roles to evaluate: ${newJobs.length}`);
+  log.info(`New roles for review: ${newJobs.length}`);
 
   return newJobs;
 }
 
+// TODO: Re-enable runEvaluate once the Anthropic API key is configured.
+// This stage sends each new role to Claude Sonnet for fit scoring against
+// the Target Role Profile in src/config/target-role-profile.ts, returning
+// a fitScore (0-100), recommendation (apply/research/skip), summary, and flags.
+// Requires: ANTHROPIC_API_KEY env var + pay-per-token billing set up at
+// console.anthropic.com.
+//
+// async function runEvaluate(
+//   jobs: NormalizedJob[],
+//   apiKey: string,
+//   fitScoreThreshold: number,
+// ): Promise<{
+//   scoredJobs: ScoredJob[];
+//   qualifying: ScoredJob[];
+//   skippedCount: number;
+// }> {
+//   const log = createLogger("EVAL");
+//   log.info(`Evaluating ${jobs.length} roles with Claude...`);
+//
+//   const scoredJobs: ScoredJob[] = [];
+//   let index = 0;
+//
+//   for (const job of jobs) {
+//     log.info(`(${index + 1}/${jobs.length}) "${job.title}" at ${job.company}`);
+//     const evaluation = await evaluate(job, apiKey, index > 0);
+//     log.info(`Score: ${evaluation.fitScore}/100 — ${evaluation.recommendation}`);
+//     scoredJobs.push({ job, evaluation });
+//     index++;
+//   }
+//
+//   const qualifying = scoredJobs.filter(
+//     (s) =>
+//       s.evaluation.recommendation !== "skip" &&
+//       s.evaluation.fitScore >= fitScoreThreshold,
+//   );
+//
+//   return {
+//     scoredJobs,
+//     qualifying,
+//     skippedCount: scoredJobs.length - qualifying.length,
+//   };
+// }
+
+// TODO: Re-enable runLog once Claude evaluation is active.
+// Writes qualifying ScoredJobs to the Notion Job Tracker database,
+// pre-populating Company, Role Title, Status, Fit Score, Location,
+// Salary Range, Job Posting URL, and Notes (Claude summary + flags).
+//
+// async function runLog(
+//   notion: Client,
+//   databaseId: string,
+//   qualifying: ScoredJob[],
+// ): Promise<number> {
+//   const log = createLogger("LOG");
+//   log.info(`Logging ${qualifying.length} qualifying roles to Notion...`);
+//   return logAllToNotion(notion, databaseId, qualifying);
+// }
+
 /**
- * Stage 4 — Evaluate each new job with Claude against the Target Role Profile.
- * Calls are made sequentially with a 500ms delay between each to respect
- * the API rate limit. Returns all scored jobs and the subset that meet
- * the configured fit score threshold.
- */
-async function runEvaluate(
-  jobs: NormalizedJob[],
-  apiKey: string,
-  fitScoreThreshold: number,
-): Promise<{
-  scoredJobs: ScoredJob[];
-  qualifying: ScoredJob[];
-  skippedCount: number;
-}> {
-  const log = createLogger("EVAL");
-
-  log.info(`Evaluating ${jobs.length} roles with Claude...`);
-
-  const scoredJobs: ScoredJob[] = [];
-  let index = 0;
-
-  for (const job of jobs) {
-    log.info(`(${index + 1}/${jobs.length}) "${job.title}" at ${job.company}`);
-
-    const evaluation = await evaluate(job, apiKey, index > 0);
-
-    log.info(
-      `Score: ${evaluation.fitScore}/100 — ${evaluation.recommendation}`,
-    );
-    scoredJobs.push({ job, evaluation });
-    index++;
-  }
-
-  const qualifying = scoredJobs.filter(
-    (s) =>
-      s.evaluation.recommendation !== "skip" &&
-      s.evaluation.fitScore >= fitScoreThreshold,
-  );
-
-  return {
-    scoredJobs,
-    qualifying,
-    skippedCount: scoredJobs.length - qualifying.length,
-  };
-}
-
-/**
- * Stage 5 — Write all qualifying roles to the Notion Job Tracker database.
- * Only jobs with recommendation `apply` or `research` are logged.
- * Enforces a 400ms delay between writes to respect Notion's rate limit.
+ * Stage 4 (manual review mode) — Post all new deduped roles to Slack so
+ * they can be reviewed manually. Skipped if SLACK_WEBHOOK_URL is not set.
  *
- * @returns The number of rows successfully written.
+ * TODO: Replace this with runNotify(qualifying, date) once Claude evaluation
+ * is re-enabled. That version sends only scored qualifying roles using
+ * sendSlackDigest() and includes fit score, recommendation, and summary.
  */
-async function runLog(
-  notion: Client,
-  databaseId: string,
-  qualifying: ScoredJob[],
-): Promise<number> {
-  const log = createLogger("LOG");
-
-  log.info(`Logging ${qualifying.length} qualifying roles to Notion...`);
-
-  return logAllToNotion(notion, databaseId, qualifying);
-}
-
-/**
- * Stage 6 — Send a daily digest of new qualifying roles via Slack.
- * Skipped if SLACK_WEBHOOK_URL is not configured.
- */
-async function runNotify(qualifying: ScoredJob[], date: string): Promise<void> {
+async function runReviewNotify(
+  jobs: NormalizedJob[],
+  date: string,
+): Promise<void> {
   const log = createLogger("NOTIFY");
 
-  const digestJobs = qualifying.filter(
-    (s) =>
-      s.evaluation.recommendation === "apply" ||
-      s.evaluation.recommendation === "research",
-  );
-
   const slackWebhook = getEnv("SLACK_WEBHOOK_URL");
-  if (slackWebhook) {
-    try {
-      await sendSlackDigest(slackWebhook, date, digestJobs);
-      log.info("Slack digest sent");
-    } catch (err: unknown) {
-      log.error("Slack send failed", err);
-    }
+  if (!slackWebhook) {
+    log.info("SLACK_WEBHOOK_URL not set — skipping notification");
+    return;
   }
 
+  try {
+    await sendReviewDigest(slackWebhook, date, jobs);
+    log.info(`Slack review digest sent — ${jobs.length} role(s)`);
+  } catch (err: unknown) {
+    log.error("Slack send failed", err);
+  }
 }
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
@@ -189,10 +189,10 @@ async function run(): Promise<void> {
 
   log.info(`Starting job search pipeline — ${today()}`);
 
-  const anthropicApiKey = requireEnv("ANTHROPIC_API_KEY");
+  // TODO: Remove ANTHROPIC_API_KEY from required env vars once evaluation
+  // is re-enabled. Not needed while Claude stage is commented out.
   const notionToken = requireEnv("NOTION_TOKEN");
   const notionDatabaseId = requireEnv("NOTION_DATABASE_ID");
-  const fitScoreThreshold = parseInt(getEnv("FIT_SCORE_THRESHOLD") ?? "60", 10);
 
   const notion = new Client({ auth: notionToken });
   const summary: RunSummary = {
@@ -206,8 +206,7 @@ async function run(): Promise<void> {
 
   const rawJobs = await runFetch();
 
-  const { filtered, fetchedCount, filteredCount } =
-    runNormalizeAndFilter(rawJobs);
+  const { filtered, fetchedCount, filteredCount } = runNormalizeAndFilter(rawJobs);
   summary.fetched = fetchedCount;
   summary.filtered = filteredCount;
 
@@ -220,17 +219,19 @@ async function run(): Promise<void> {
     return;
   }
 
-  const { scoredJobs, qualifying, skippedCount } = await runEvaluate(
-    newJobs,
-    anthropicApiKey,
-    fitScoreThreshold,
-  );
-  summary.evaluated = scoredJobs.length;
-  summary.skipped = skippedCount;
+  // TODO: Swap these two blocks when re-enabling Claude evaluation:
+  //
+  // const { scoredJobs, qualifying, skippedCount } = await runEvaluate(
+  //   newJobs,
+  //   requireEnv("ANTHROPIC_API_KEY"),
+  //   parseInt(getEnv("FIT_SCORE_THRESHOLD") ?? "60", 10),
+  // );
+  // summary.evaluated = scoredJobs.length;
+  // summary.skipped = skippedCount;
+  // summary.logged = await runLog(notion, notionDatabaseId, qualifying);
+  // await runNotify(qualifying, today());
 
-  summary.logged = await runLog(notion, notionDatabaseId, qualifying);
-
-  await runNotify(qualifying, today());
+  await runReviewNotify(newJobs, today());
 
   printSummary(summary);
 }
@@ -244,14 +245,8 @@ function printSummary(summary: RunSummary): void {
   console.log("  ├─────────────────────────────────────┤");
   console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
   console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
-  console.log(
-    `  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`,
-  );
-  console.log(
-    `  │  Evaluated      ${String(summary.evaluated).padStart(20)} │`,
-  );
-  console.log(`  │  Logged         ${String(summary.logged).padStart(20)} │`);
-  console.log(`  │  Skipped        ${String(summary.skipped).padStart(20)} │`);
+  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
+  console.log(`  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`);
   console.log("  └─────────────────────────────────────┘");
   console.log("");
 }
