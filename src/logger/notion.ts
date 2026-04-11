@@ -8,6 +8,23 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Maps a raw ATS location string to the closest canonical Notion select option.
+ * Falls back to the raw string so Notion creates a new option rather than
+ * losing the data entirely.
+ */
+function normalizeLocationLabel(location: string): string {
+  const lower = location.toLowerCase();
+
+  if (lower.includes("remote")) return "Remote";
+  if (lower.includes("charlotte")) return "Charlotte NC";
+  if (lower.includes("new york") || lower.includes(", ny")) return "New York";
+  if (lower.includes("london")) return "London";
+  if (lower.includes("fort mill")) return "Fort Mill SC";
+
+  return location;
+}
+
 function fitScoreLabel(score: number): string {
   if (score >= 85) return "Strong Fit";
   if (score >= 70) return "Good Fit";
@@ -56,7 +73,7 @@ export async function logToNotion(
         select: { name: fitScoreLabel(evaluation.fitScore) },
       },
       Location: {
-        rich_text: [{ text: { content: job.location } }],
+        select: { name: normalizeLocationLabel(job.location) },
       },
       "Salary Range": {
         rich_text: [
