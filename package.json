@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@notionhq/client": "^2.2.15"
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^17.4.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",

@@ -1,6 +1,13 @@
+import "dotenv/config";
 import { Client } from "@notionhq/client";
 import companies from "./config/companies.json" with { type: "json" };
-import type { CompanyConfig, NormalizedJob, RawJob, ScoredJob, RunSummary } from "./types/index.js";
+import type {
+  CompanyConfig,
+  NormalizedJob,
+  RawJob,
+  ScoredJob,
+  RunSummary,
+} from "./types/index.js";
 import { createLogger } from "./lib/logger.js";
 import { fetchAll } from "./fetchers/index.js";
 import { normalize } from "./normalizer/index.js";
@@ -42,9 +49,11 @@ async function runFetch(): Promise<RawJob[]> {
  * title, location, and seniority filters. Returns only jobs that pass
  * all filters, along with counts for the run summary.
  */
-function runNormalizeAndFilter(
-  rawJobs: RawJob[]
-): { filtered: NormalizedJob[]; fetchedCount: number; filteredCount: number } {
+function runNormalizeAndFilter(rawJobs: RawJob[]): {
+  filtered: NormalizedJob[];
+  fetchedCount: number;
+  filteredCount: number;
+} {
   const log = createLogger("FILTER");
 
   const normalized = normalize(rawJobs);
@@ -68,7 +77,7 @@ function runNormalizeAndFilter(
 async function runDedup(
   notion: Client,
   databaseId: string,
-  jobs: NormalizedJob[]
+  jobs: NormalizedJob[],
 ): Promise<NormalizedJob[]> {
   const log = createLogger("DEDUP");
 
@@ -91,8 +100,12 @@ async function runDedup(
 async function runEvaluate(
   jobs: NormalizedJob[],
   apiKey: string,
-  fitScoreThreshold: number
-): Promise<{ scoredJobs: ScoredJob[]; qualifying: ScoredJob[]; skippedCount: number }> {
+  fitScoreThreshold: number,
+): Promise<{
+  scoredJobs: ScoredJob[];
+  qualifying: ScoredJob[];
+  skippedCount: number;
+}> {
   const log = createLogger("EVAL");
 
   log.info(`Evaluating ${jobs.length} roles with Claude...`);
@@ -105,7 +118,9 @@ async function runEvaluate(
 
     const evaluation = await evaluate(job, apiKey, index > 0);
 
-    log.info(`Score: ${evaluation.fitScore}/100 — ${evaluation.recommendation}`);
+    log.info(
+      `Score: ${evaluation.fitScore}/100 — ${evaluation.recommendation}`,
+    );
     scoredJobs.push({ job, evaluation });
     index++;
   }
@@ -113,7 +128,7 @@ async function runEvaluate(
   const qualifying = scoredJobs.filter(
     (s) =>
       s.evaluation.recommendation !== "skip" &&
-      s.evaluation.fitScore >= fitScoreThreshold
+      s.evaluation.fitScore >= fitScoreThreshold,
   );
 
   return {
@@ -133,7 +148,7 @@ async function runEvaluate(
 async function runLog(
   notion: Client,
   databaseId: string,
-  qualifying: ScoredJob[]
+  qualifying: ScoredJob[],
 ): Promise<number> {
   const log = createLogger("LOG");
 
@@ -154,7 +169,7 @@ async function runNotify(qualifying: ScoredJob[], date: string): Promise<void> {
   const digestJobs = qualifying.filter(
     (s) =>
       s.evaluation.recommendation === "apply" ||
-      s.evaluation.recommendation === "research"
+      s.evaluation.recommendation === "research",
   );
 
   const slackWebhook = getEnv("SLACK_WEBHOOK_URL");
@@ -203,7 +218,8 @@ async function run(): Promise<void> {
 
   const rawJobs = await runFetch();
 
-  const { filtered, fetchedCount, filteredCount } = runNormalizeAndFilter(rawJobs);
+  const { filtered, fetchedCount, filteredCount } =
+    runNormalizeAndFilter(rawJobs);
   summary.fetched = fetchedCount;
   summary.filtered = filteredCount;
 
@@ -219,7 +235,7 @@ async function run(): Promise<void> {
   const { scoredJobs, qualifying, skippedCount } = await runEvaluate(
     newJobs,
     anthropicApiKey,
-    fitScoreThreshold
+    fitScoreThreshold,
   );
   summary.evaluated = scoredJobs.length;
   summary.skipped = skippedCount;
@@ -240,8 +256,12 @@ function printSummary(summary: RunSummary): void {
   console.log("  ├─────────────────────────────────────┤");
   console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
   console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
-  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
-  console.log(`  │  Evaluated      ${String(summary.evaluated).padStart(20)} │`);
+  console.log(
+    `  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`,
+  );
+  console.log(
+    `  │  Evaluated      ${String(summary.evaluated).padStart(20)} │`,
+  );
   console.log(`  │  Logged         ${String(summary.logged).padStart(20)} │`);
   console.log(`  │  Skipped        ${String(summary.skipped).padStart(20)} │`);
   console.log("  └─────────────────────────────────────┘");
