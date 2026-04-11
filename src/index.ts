@@ -114,7 +114,7 @@ async function run(): Promise<void> {
     try {
       await sendSlackDigest(slackWebhook, date, digestJobs);
       console.log("[NOTIFY] Slack digest sent");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(
         "[NOTIFY] Slack send failed:",
         err instanceof Error ? err.message : err
@@ -128,7 +128,7 @@ async function run(): Promise<void> {
     try {
       await sendEmailDigest(resendKey, notifyEmail, date, digestJobs);
       console.log("[NOTIFY] Email digest sent");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(
         "[NOTIFY] Email send failed:",
         err instanceof Error ? err.message : err
@@ -151,7 +151,7 @@ function printSummary(summary: RunSummary): void {
   console.log("[PIPELINE] ─────────────────────────────────\n");
 }
 
-run().catch((err) => {
+run().catch((err: unknown) => {
   console.error("[PIPELINE] Fatal error:", err instanceof Error ? err.message : err);
   process.exit(1);
 });

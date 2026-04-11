@@ -1,11 +1,11 @@
-import { ScoredJob } from "../types/index.js";
+import type { ScoredJob } from "../types/index.js";
 
-interface ResendEmailRequest {
+type ResendEmailRequest = {
   from: string;
   to: string;
   subject: string;
   text: string;
-}
+};
 
 function buildDigest(date: string, scoredJobs: ScoredJob[]): string {
   if (scoredJobs.length === 0) {
@@ -29,6 +29,12 @@ function buildDigest(date: string, scoredJobs: ScoredJob[]): string {
   return lines.join("\n").trim();
 }
 
+/**
+ * Sends a daily digest of new qualifying roles via the Resend email API.
+ * If no qualifying roles were found, sends a brief completion confirmation.
+ *
+ * @throws {Error} If the Resend API returns a non-OK status.
+ */
 export async function sendEmailDigest(
   resendApiKey: string,
   toEmail: string,

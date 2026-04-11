@@ -1,6 +1,10 @@
-import { NormalizedJob } from "../types/index.js";
+import type { NormalizedJob } from "../types/index.js";
 import { TARGET_ROLE_PROFILE } from "../config/target-role-profile.js";
 
+/**
+ * System prompt injected into every Claude evaluation call.
+ * Includes the candidate's Target Role Profile and the expected JSON output schema.
+ */
 export const SYSTEM_PROMPT = `You are a precise job fit evaluator. Return only valid JSON. No preamble, no explanation, no markdown.
 
 ${TARGET_ROLE_PROFILE}
@@ -23,6 +27,10 @@ Return exactly this JSON structure:
 - Below 50: Material mismatches on multiple dimensions → recommend "skip"
 `;
 
+/**
+ * Builds the user-turn message for a Claude evaluation call from a normalized job.
+ * Caps description text at 2,000 characters to control token cost.
+ */
 export function buildUserMessage(job: NormalizedJob): string {
   const salary =
     job.salaryMin !== null && job.salaryMax !== null

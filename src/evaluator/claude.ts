@@ -41,6 +41,16 @@ function parseEvaluationResult(text: string): EvaluationResult {
   return { fitScore, recommendation, summary, flags };
 }
 
+/**
+ * Sends a normalized job to the Claude API for fit evaluation and returns
+ * a structured `EvaluationResult`. Retries JSON parsing once (stripping
+ * markdown fences) before falling back to a zero-score skip result.
+ *
+ * @param job - The normalized job to evaluate.
+ * @param apiKey - Anthropic API key.
+ * @param delayBefore - When true, waits 500ms before the API call to
+ *   respect the rate limit between sequential evaluations.
+ */
 export async function evaluate(
   job: NormalizedJob,
   apiKey: string,
@@ -55,12 +65,7 @@ export async function evaluate(
     max_tokens: 600,
     temperature: 0,
     system: SYSTEM_PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: buildUserMessage(job),
-      },
-    ],
+    messages: [{ role: "user", content: buildUserMessage(job) }],
   });
 
   let rawText = "";
@@ -84,7 +89,7 @@ export async function evaluate(
     const data = (await response.json()) as AnthropicMessage;
     const block = data.content.find((b) => b.type === "text");
     rawText = block?.text ?? "";
-  } catch (err) {
+  } catch (err: unknown) {
     console.error(
       `[EVAL] Claude API call failed for "${job.title}" at ${job.company}:`,
       err instanceof Error ? err.message : err

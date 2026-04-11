@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import { ScoredJob } from "../types/index.js";
+import type { ScoredJob } from "../types/index.js";
 
 const NOTION_RATE_DELAY_MS = 400;
 
@@ -21,6 +21,13 @@ function formatSalary(min: number | null, max: number | null): string {
   return "Not listed";
 }
 
+/**
+ * Creates a single Notion page in the Job Tracker database for a qualifying
+ * scored job. All standard fields are pre-populated from the job and
+ * evaluation data.
+ *
+ * @throws {Error} If the Notion API call fails.
+ */
 export async function logToNotion(
   notion: Client,
   databaseId: string,
@@ -62,6 +69,12 @@ export async function logToNotion(
   });
 }
 
+/**
+ * Logs all qualifying scored jobs (recommendation `apply` or `research`) to
+ * Notion, enforcing a 400ms delay between writes to respect the API rate limit.
+ *
+ * @returns The number of rows successfully written to Notion.
+ */
 export async function logAllToNotion(
   notion: Client,
   databaseId: string,
@@ -86,7 +99,7 @@ export async function logAllToNotion(
         `[LOG] Logged: "${scoredJob.job.title}" at ${scoredJob.job.company} (score: ${scoredJob.evaluation.fitScore})`
       );
       logged++;
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(
         `[LOG] Failed to log "${scoredJob.job.title}" at ${scoredJob.job.company}:`,
         err instanceof Error ? err.message : err

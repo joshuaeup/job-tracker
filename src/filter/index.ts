@@ -1,4 +1,4 @@
-import { NormalizedJob } from "../types/index.js";
+import type { NormalizedJob } from "../types/index.js";
 
 const TITLE_ALLOWLIST = [
   "backend",
@@ -33,7 +33,7 @@ function passesTitle(title: string): boolean {
 }
 
 function passesLocation(job: NormalizedJob): boolean {
-  if (!job.location) return true; // no location data — let Claude evaluate
+  if (!job.location) return true;
   const lower = job.location.toLowerCase();
   return job.remote || lower.includes("charlotte") || lower.includes("remote");
 }
@@ -43,19 +43,20 @@ function passesSeniority(title: string): boolean {
   return !SENIORITY_BLOCKLIST.some((kw) => lower.includes(kw));
 }
 
+/**
+ * Applies title keyword, location, and seniority filters to a list of
+ * normalized jobs. The filter is intentionally permissive — it removes
+ * obvious mismatches only. Precision screening is the evaluator's job.
+ *
+ * @returns The subset of jobs that pass all active filters.
+ */
 export function filter(jobs: NormalizedJob[]): NormalizedJob[] {
   const passed: NormalizedJob[] = [];
 
   for (const job of jobs) {
-    if (!passesTitle(job.title)) {
-      continue;
-    }
-    if (!passesSeniority(job.title)) {
-      continue;
-    }
-    if (!passesLocation(job)) {
-      continue;
-    }
+    if (!passesTitle(job.title)) continue;
+    if (!passesSeniority(job.title)) continue;
+    if (!passesLocation(job)) continue;
     passed.push(job);
   }
 

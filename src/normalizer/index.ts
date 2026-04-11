@@ -1,5 +1,10 @@
 import type { RawJob, NormalizedJob } from "../types/index.js";
 
+/** Returns true if `value` is a non-null, non-array object (i.e. a plain record). */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
@@ -23,20 +28,15 @@ function isRemote(location: string): boolean {
 
 function parseLocation(raw: unknown): string {
   if (typeof raw === "string") return raw;
-  if (raw !== null && typeof raw === "object" && "name" in raw) {
-    const name = (raw as Record<string, unknown>)["name"];
-    return typeof name === "string" ? name : "";
-  }
+  if (isRecord(raw) && typeof raw["name"] === "string") return raw["name"];
   return "";
 }
 
 function parseSalary(compensation: unknown): { min: number | null; max: number | null } {
-  if (!compensation || typeof compensation !== "object") {
-    return { min: null, max: null };
-  }
-  const c = compensation as Record<string, unknown>;
-  const rawMin = c["min_value"] ?? c["minValue"];
-  const rawMax = c["max_value"] ?? c["maxValue"];
+  if (!isRecord(compensation)) return { min: null, max: null };
+
+  const rawMin = compensation["min_value"] ?? compensation["minValue"];
+  const rawMax = compensation["max_value"] ?? compensation["maxValue"];
   return {
     min: typeof rawMin === "number" ? rawMin : null,
     max: typeof rawMax === "number" ? rawMax : null,
@@ -49,28 +49,29 @@ function normalizeGreenhouse(job: RawJob): NormalizedJob {
   const title = String(r["title"] ?? "");
   const location = parseLocation(r["location"]);
   const url = String(r["absolute_url"] ?? "");
-  const departments = Array.isArray(r["departments"]) ? r["departments"] : [];
-  const firstDept = departments[0];
+
+  const departments = r["departments"];
+  const firstDept = Array.isArray(departments) ? departments[0] : undefined;
   const department =
-    firstDept !== undefined && typeof firstDept === "object" && firstDept !== null
-      ? String((firstDept as Record<string, unknown>)["name"] ?? "")
+    isRecord(firstDept) && typeof firstDept["name"] === "string"
+      ? firstDept["name"]
       : "";
+
   const postedAt =
     typeof r["updated_at"] === "string"
       ? r["updated_at"]
       : typeof r["first_published"] === "string"
         ? r["first_published"]
         : null;
+
   const content = r["content"];
   const descriptionHtml =
     typeof r["description"] === "string"
       ? r["description"]
-      : content !== null &&
-          content !== undefined &&
-          typeof content === "object" &&
-          typeof (content as Record<string, unknown>)["description"] === "string"
-        ? String((content as Record<string, unknown>)["description"])
+      : isRecord(content) && typeof content["description"] === "string"
+        ? content["description"]
         : "";
+
   const { min, max } = parseSalary(r["salary_range"] ?? r["compensation"]);
 
   return {
@@ -93,18 +94,16 @@ function normalizeLever(job: RawJob): NormalizedJob {
   const r = job.raw;
   const idRaw = String(r["id"] ?? "");
   const title = String(r["text"] ?? "");
-  const categories = r["categories"];
-  const categoriesObj =
-    categories !== null && categories !== undefined && typeof categories === "object"
-      ? (categories as Record<string, unknown>)
-      : null;
+
+  const categories = isRecord(r["categories"]) ? r["categories"] : null;
   const location = String(
-    categoriesObj?.["location"] ?? categoriesObj?.["allLocations"] ?? ""
+    categories?.["location"] ?? categories?.["allLocations"] ?? ""
   );
   const url = String(r["hostedUrl"] ?? "");
   const department = String(
-    categoriesObj?.["team"] ?? categoriesObj?.["department"] ?? ""
+    categories?.["team"] ?? categories?.["department"] ?? ""
   );
+
   const createdAt = r["createdAt"];
   const postedAt = typeof createdAt === "number" ? new Date(createdAt).toISOString() : null;
   const descriptionText = String(r["descriptionPlain"] ?? "");
@@ -133,12 +132,14 @@ function normalizeAshby(job: RawJob): NormalizedJob {
   const location = parseLocation(r["location"] ?? r["locationName"]);
   const url = String(r["jobUrl"] ?? r["applyUrl"] ?? "");
   const department = String(r["departmentName"] ?? r["department"] ?? "");
+
   const postedAt =
     typeof r["publishedAt"] === "string"
       ? r["publishedAt"]
       : typeof r["createdAt"] === "string"
         ? r["createdAt"]
         : null;
+
   const descriptionHtml = String(r["descriptionHtml"] ?? r["description"] ?? "");
   const { min, max } = parseSalary(r["compensation"] ?? r["salaryRange"]);
 
@@ -164,6 +165,11 @@ const NORMALIZERS = {
   ashby: normalizeAshby,
 } as const;
 
+/**
+ * Maps an array of raw ATS job responses to a common `NormalizedJob` schema.
+ * Jobs with no URL are dropped. Normalization errors for individual jobs are
+ * logged and skipped without aborting the batch.
+ */
 export function normalize(rawJobs: RawJob[]): NormalizedJob[] {
   const results: NormalizedJob[] = [];
 
@@ -173,7 +179,7 @@ export function normalize(rawJobs: RawJob[]): NormalizedJob[] {
       if (normalized.url) {
         results.push(normalized);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(
         `[FILTER] Normalization error for ${job.company} (${job.source}):`,
         err instanceof Error ? err.message : err

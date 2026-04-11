@@ -1,5 +1,10 @@
-import { CompanyConfig, RawJob } from "../types/index.js";
+import type { CompanyConfig, RawJob } from "../types/index.js";
 
+/**
+ * Fetches all job postings for a company from the Lever ATS public API.
+ *
+ * @throws {Error} If the HTTP response is not OK.
+ */
 export default async function fetchLever(
   config: CompanyConfig
 ): Promise<RawJob[]> {

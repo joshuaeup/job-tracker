@@ -1,9 +1,14 @@
-import { CompanyConfig, RawJob } from "../types/index.js";
+import type { CompanyConfig, RawJob } from "../types/index.js";
 
-interface AshbyResponse {
+type AshbyResponse = {
   jobPostings: Record<string, unknown>[];
-}
+};
 
+/**
+ * Fetches all job postings for a company from the Ashby ATS public API.
+ *
+ * @throws {Error} If the HTTP response is not OK.
+ */
 export default async function fetchAshby(
   config: CompanyConfig
 ): Promise<RawJob[]> {

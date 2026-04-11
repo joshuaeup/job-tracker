@@ -1,9 +1,15 @@
-import { CompanyConfig, RawJob } from "../types/index.js";
+import type { CompanyConfig, RawJob } from "../types/index.js";
 
-interface GreenhouseResponse {
+type GreenhouseResponse = {
   jobs: Record<string, unknown>[];
-}
+};
 
+/**
+ * Fetches all job postings for a company from the Greenhouse ATS public API.
+ * Includes job description content via the `?content=true` query param.
+ *
+ * @throws {Error} If the HTTP response is not OK.
+ */
 export default async function fetchGreenhouse(
   config: CompanyConfig
 ): Promise<RawJob[]> {

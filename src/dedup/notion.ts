@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import { NormalizedJob } from "../types/index.js";
+import type { NormalizedJob } from "../types/index.js";
 
 const NOTION_RATE_DELAY_MS = 400;
 
@@ -7,7 +7,17 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function fetchSeenUrls(notion: Client, databaseId: string): Promise<Set<string>> {
+/**
+ * Prefetches all existing job posting URLs from the Notion Job Tracker
+ * database into a `Set` for O(1) per-role deduplication.
+ *
+ * Uses paginated queries with a 400ms delay between pages to respect
+ * Notion's rate limit of 3 req/sec.
+ */
+export async function fetchSeenUrls(
+  notion: Client,
+  databaseId: string
+): Promise<Set<string>> {
   const seen = new Set<string>();
   let cursor: string | undefined = undefined;
 
@@ -23,7 +33,11 @@ export async function fetchSeenUrls(notion: Client, databaseId: string): Promise
       const props = page.properties;
 
       const urlProp = props["Job Posting URL"];
-      if (urlProp?.type === "url" && typeof urlProp.url === "string" && urlProp.url) {
+      if (
+        urlProp?.type === "url" &&
+        typeof urlProp.url === "string" &&
+        urlProp.url
+      ) {
         seen.add(urlProp.url);
       }
     }
@@ -39,6 +53,9 @@ export async function fetchSeenUrls(notion: Client, databaseId: string): Promise
   return seen;
 }
 
+/**
+ * Returns only the jobs whose URL does not appear in the `seenUrls` set.
+ */
 export function deduplicate(
   jobs: NormalizedJob[],
   seenUrls: Set<string>
