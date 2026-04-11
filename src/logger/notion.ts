@@ -40,11 +40,13 @@ export async function logToNotion(
   await notion.pages.create({
     parent: { database_id: databaseId },
     properties: {
-      "Role Title": {
-        title: [{ text: { content: job.title } }],
-      },
+      // "Company" is the Title property (Aa column) in this database
       Company: {
-        rich_text: [{ text: { content: job.company } }],
+        title: [{ text: { content: job.company } }],
+      },
+      // "Role Title" is a Text property
+      "Role Title": {
+        rich_text: [{ text: { content: job.title } }],
       },
       Status: {
         select: { name: "Researching" },
@@ -63,6 +65,7 @@ export async function logToNotion(
       "Job Posting URL": {
         url: job.url,
       },
+      // "Notes" is a Text property — add this column to your database if not present
       Notes: {
         rich_text: [{ text: { content: notes.slice(0, 2000) } }],
       },
