@@ -9,9 +9,10 @@ function sleep(ms: number): Promise<void> {
 }
 
 function fitScoreLabel(score: number): string {
-  if (score >= 85) return "🎯 Strong Fit";
-  if (score >= 70) return "✅ Good Fit";
-  return "🔍 Possible Fit";
+  if (score >= 85) return "Strong Fit";
+  if (score >= 70) return "Good Fit";
+  if (score >= 50) return "Reach";
+  return "Poor Fit";
 }
 
 function formatSalary(min: number | null, max: number | null): string {
