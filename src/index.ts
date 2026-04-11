@@ -217,6 +217,8 @@ async function run(): Promise<void> {
 
   if (newJobs.length === 0) {
     log.info("No new roles found. Exiting.");
+
+    await runReviewNotify(newJobs, today());
     printSummary(summary);
     return;
   }
