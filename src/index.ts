@@ -14,6 +14,7 @@ import { fetchAll } from "./fetchers/index.js";
 import { normalize } from "./normalizer/index.js";
 import { filter } from "./filter/index.js";
 import { fetchSeenUrls, deduplicate } from "./dedup/notion.js";
+import { logRawJobsToNotion } from "./logger/notion.js";
 import { sendReviewDigest } from "./notify/slack.js";
 
 // TODO: Re-enable these imports once an Anthropic API key is available and
@@ -206,7 +207,8 @@ async function run(): Promise<void> {
 
   const rawJobs = await runFetch();
 
-  const { filtered, fetchedCount, filteredCount } = runNormalizeAndFilter(rawJobs);
+  const { filtered, fetchedCount, filteredCount } =
+    runNormalizeAndFilter(rawJobs);
   summary.fetched = fetchedCount;
   summary.filtered = filteredCount;
 
@@ -231,6 +233,8 @@ async function run(): Promise<void> {
   // summary.logged = await runLog(notion, notionDatabaseId, qualifying);
   // await runNotify(qualifying, today());
 
+  await logRawJobsToNotion(notion, notionDatabaseId, newJobs);
+
   await runReviewNotify(newJobs, today());
 
   printSummary(summary);
@@ -245,8 +249,12 @@ function printSummary(summary: RunSummary): void {
   console.log("  ├─────────────────────────────────────┤");
   console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
   console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
-  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
-  console.log(`  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`);
+  console.log(
+    `  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`,
+  );
+  console.log(
+    `  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`,
+  );
   console.log("  └─────────────────────────────────────┘");
   console.log("");
 }

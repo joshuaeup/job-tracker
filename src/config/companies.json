@@ -1,10 +1,20 @@
 [
-  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": true },
-  { "name": "Plaid", "ats": "greenhouse", "slug": "plaid", "enabled": true },
-  { "name": "Affirm", "ats": "greenhouse", "slug": "affirm", "enabled": true },
-  { "name": "NerdWallet", "ats": "greenhouse", "slug": "nerdwallet", "enabled": true },
-  { "name": "SeatGeek", "ats": "lever", "slug": "seatgeek", "enabled": true },
-  { "name": "Betterment", "ats": "greenhouse", "slug": "betterment", "enabled": true },
-  { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": true },
+  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": false },
+  { "name": "Plaid", "ats": "greenhouse", "slug": "plaid", "enabled": false },
+  { "name": "Affirm", "ats": "greenhouse", "slug": "affirm", "enabled": false },
+  {
+    "name": "NerdWallet",
+    "ats": "greenhouse",
+    "slug": "nerdwallet",
+    "enabled": false
+  },
+  { "name": "SeatGeek", "ats": "lever", "slug": "seatgeek", "enabled": false },
+  {
+    "name": "Betterment",
+    "ats": "greenhouse",
+    "slug": "betterment",
+    "enabled": false
+  },
+  { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": false },
   { "name": "Cribl", "ats": "greenhouse", "slug": "cribl", "enabled": true }
 ]

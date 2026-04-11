@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import type { ScoredJob } from "../types/index.js";
+import type { NormalizedJob, ScoredJob } from "../types/index.js";
 import { createLogger } from "../lib/logger.js";
 
 const NOTION_RATE_DELAY_MS = 400;
@@ -89,6 +89,67 @@ export async function logToNotion(
       },
     },
   });
+}
+
+/**
+ * Logs a batch of raw (unevaluated) jobs to Notion so they are marked as seen
+ * and won't be re-surfaced on future runs. Used when Claude evaluation is
+ * disabled — the dedup stage reads Job Posting URL, so any row written here
+ * will be skipped on the next pipeline run.
+ *
+ * Status is set to "Researching" so they appear in the tracker for manual review.
+ * Fit Score and Notes are left blank until Claude evaluation is re-enabled.
+ *
+ * @returns The number of rows successfully written to Notion.
+ */
+export async function logRawJobsToNotion(
+  notion: Client,
+  databaseId: string,
+  jobs: NormalizedJob[]
+): Promise<number> {
+  const log = createLogger("LOG");
+  let logged = 0;
+
+  for (const job of jobs) {
+    try {
+      if (logged > 0) {
+        await sleep(NOTION_RATE_DELAY_MS);
+      }
+
+      await notion.pages.create({
+        parent: { database_id: databaseId },
+        properties: {
+          Company: {
+            title: [{ text: { content: job.company } }],
+          },
+          "Role Title": {
+            rich_text: [{ text: { content: job.title } }],
+          },
+          Status: {
+            select: { name: "Researching" },
+          },
+          Location: {
+            select: { name: normalizeLocationLabel(job.location) },
+          },
+          "Salary Range": {
+            rich_text: [
+              { text: { content: formatSalary(job.salaryMin, job.salaryMax) } },
+            ],
+          },
+          "Job Posting URL": {
+            url: job.url,
+          },
+        },
+      });
+
+      log.info(`Logged "${job.title}" at ${job.company}`);
+      logged++;
+    } catch (err: unknown) {
+      log.error(`Failed to log "${job.title}" at ${job.company}`, err);
+    }
+  }
+
+  return logged;
 }
 
 /**

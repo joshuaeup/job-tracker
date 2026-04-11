@@ -4,8 +4,13 @@ const TITLE_ALLOWLIST = [
   "backend",
   "back-end",
   "back end",
+  "senior software engineer",
+  "senior software developer",
+  "senior developer",
+  "senior typescript",
   "software engineer",
   "software developer",
+  "developer",
   "node",
   "nodejs",
   "node.js",
@@ -13,7 +18,7 @@ const TITLE_ALLOWLIST = [
   "api",
   "platform",
   "tech lead",
-  "staff engineer",
+  "developer",
 ];
 
 const SENIORITY_BLOCKLIST = [
@@ -25,6 +30,16 @@ const SENIORITY_BLOCKLIST = [
   "principal",
   "distinguished",
   "vp of",
+  "fullstack",
+  "full-stack",
+  "full stack",
+  "engineering manager",
+  "manager",
+  "principal engineer",
+  "principal software engineer",
+  "distinguished engineer",
+  "vp engineering",
+  "staff",
 ];
 
 function passesTitle(title: string): boolean {
