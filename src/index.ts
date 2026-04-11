@@ -16,7 +16,7 @@ import { fetchSeenUrls, deduplicate } from "./dedup/notion.js";
 import { evaluate } from "./evaluator/claude.js";
 import { logAllToNotion } from "./logger/notion.js";
 import { sendSlackDigest } from "./notify/slack.js";
-import { sendEmailDigest } from "./notify/email.js";
+
 
 // ── Environment helpers ───────────────────────────────────────────────────────
 
@@ -158,10 +158,8 @@ async function runLog(
 }
 
 /**
- * Stage 6 — Send a daily digest of new qualifying roles via Slack and/or email.
- * Each channel is attempted independently — a failure on one does not
- * prevent the other from sending. Both are skipped if their credentials
- * are not configured.
+ * Stage 6 — Send a daily digest of new qualifying roles via Slack.
+ * Skipped if SLACK_WEBHOOK_URL is not configured.
  */
 async function runNotify(qualifying: ScoredJob[], date: string): Promise<void> {
   const log = createLogger("NOTIFY");
@@ -182,16 +180,6 @@ async function runNotify(qualifying: ScoredJob[], date: string): Promise<void> {
     }
   }
 
-  const resendKey = getEnv("RESEND_API_KEY");
-  const notifyEmail = getEnv("NOTIFY_EMAIL");
-  if (resendKey && notifyEmail) {
-    try {
-      await sendEmailDigest(resendKey, notifyEmail, date, digestJobs);
-      log.info("Email digest sent");
-    } catch (err: unknown) {
-      log.error("Email send failed", err);
-    }
-  }
 }
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
