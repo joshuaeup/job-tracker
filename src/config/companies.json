@@ -1,0 +1,10 @@
+[
+  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": true },
+  { "name": "Plaid", "ats": "greenhouse", "slug": "plaid", "enabled": true },
+  { "name": "Affirm", "ats": "greenhouse", "slug": "affirm", "enabled": true },
+  { "name": "NerdWallet", "ats": "greenhouse", "slug": "nerdwallet", "enabled": true },
+  { "name": "SeatGeek", "ats": "lever", "slug": "seatgeek", "enabled": true },
+  { "name": "Betterment", "ats": "greenhouse", "slug": "betterment", "enabled": true },
+  { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": true },
+  { "name": "Cribl", "ats": "greenhouse", "slug": "cribl", "enabled": true }
+]
