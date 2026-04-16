@@ -1,0 +1,38 @@
+{
+  "titleAllowlist": [
+    "backend",
+    "back-end",
+    "back end",
+    "senior software engineer",
+    "senior software developer",
+    "senior developer",
+    "senior typescript",
+    "software engineer",
+    "software developer",
+    "typescript",
+    "api",
+    "platform"
+  ],
+  "titleBlocklist": [
+    "intern",
+    "junior",
+    "jr",
+    "associate",
+    "principal",
+    "distinguished",
+    "vp",
+    "fullstack",
+    "full-stack",
+    "full stack",
+    "manager",
+    "director",
+    "staff",
+    "android",
+    "ios",
+    "mobile",
+    "advocate",
+    "frontend",
+    "front-end",
+    "front end"
+  ]
+}

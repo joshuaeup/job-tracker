@@ -1,43 +1,8 @@
 import type { NormalizedJob } from "../types/index.js";
+import rolesConfig from "../config/roles.json" with { type: "json" };
 
-const TITLE_ALLOWLIST = [
-  "backend",
-  "back-end",
-  "back end",
-  "senior software engineer",
-  "senior software developer",
-  "senior developer",
-  "senior typescript",
-  "software engineer",
-  "software developer",
-  "typescript",
-  "api",
-  "platform",
-];
-
-const SENIORITY_BLOCKLIST = [
-  "intern",
-  "junior",
-  "jr",
-  "associate",
-  "principal",
-  "distinguished",
-  "vp",
-  "fullstack",
-  "full-stack",
-  "full stack",
-  "manager",
-  "director",
-  "principal",
-  "staff",
-  "android",
-  "ios",
-  "mobile",
-  "advocate",
-  "frontend",
-  "front-end",
-  "front end",
-];
+const TITLE_ALLOWLIST: string[] = rolesConfig.titleAllowlist;
+const SENIORITY_BLOCKLIST: string[] = rolesConfig.titleBlocklist;
 
 const TITLE_ALLOWLIST_PATTERNS = TITLE_ALLOWLIST.map(
   (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i")
