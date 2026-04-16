@@ -1,4 +1,4 @@
-import { Client } from "@notionhq/client";
+import type { Client } from "@notionhq/client";
 import type { NormalizedJob, ScoredJob } from "../types/index.js";
 import { createLogger } from "../lib/logger.js";
 
@@ -20,7 +20,8 @@ function normalizeLocationLabel(location: string, remote: boolean): string {
 
   if (lower.includes("remote")) return "Remote";
   if (lower.includes("charlotte")) return "Charlotte NC";
-  if (lower.includes("new york") || lower.includes(", ny") || lower.includes("nyc")) return "New York";
+  if (lower.includes("new york") || lower.includes(", ny") || lower.includes("nyc"))
+    return "New York";
   if (lower.includes("london")) return "London";
   if (lower.includes("fort mill")) return "Fort Mill SC";
 
@@ -54,7 +55,7 @@ function formatSalary(min: number | null, max: number | null): string {
 export async function logToNotion(
   notion: Client,
   databaseId: string,
-  scoredJob: ScoredJob
+  scoredJob: ScoredJob,
 ): Promise<void> {
   const { job, evaluation } = scoredJob;
   const notes = `${evaluation.summary}\n\nFlags: ${evaluation.flags.join(", ")}`;
@@ -80,9 +81,7 @@ export async function logToNotion(
         select: { name: normalizeLocationLabel(job.location, job.remote) },
       },
       "Salary Range": {
-        rich_text: [
-          { text: { content: formatSalary(job.salaryMin, job.salaryMax) } },
-        ],
+        rich_text: [{ text: { content: formatSalary(job.salaryMin, job.salaryMax) } }],
       },
       "Job Posting URL": {
         url: job.url,
@@ -109,7 +108,7 @@ export async function logToNotion(
 export async function logRawJobsToNotion(
   notion: Client,
   databaseId: string,
-  jobs: NormalizedJob[]
+  jobs: NormalizedJob[],
 ): Promise<number> {
   const log = createLogger("LOG");
   let logged = 0;
@@ -165,7 +164,7 @@ export async function logRawJobsToNotion(
 export async function logAllToNotion(
   notion: Client,
   databaseId: string,
-  scoredJobs: ScoredJob[]
+  scoredJobs: ScoredJob[],
 ): Promise<number> {
   const log = createLogger("LOG");
   let logged = 0;
@@ -185,13 +184,13 @@ export async function logAllToNotion(
       await logToNotion(notion, databaseId, scoredJob);
 
       log.info(
-        `Logged "${scoredJob.job.title}" at ${scoredJob.job.company} — score: ${scoredJob.evaluation.fitScore}`
+        `Logged "${scoredJob.job.title}" at ${scoredJob.job.company} — score: ${scoredJob.evaluation.fitScore}`,
       );
       logged++;
     } catch (err: unknown) {
       log.error(
         `Failed to log "${scoredJob.job.title}" at ${scoredJob.job.company}`,
-        err
+        err,
       );
     }
   }

@@ -33,8 +33,7 @@ function parseEvaluationResult(text: string): EvaluationResult {
     rec === "apply" || rec === "research" || rec === "skip" ? rec : "skip";
 
   const rawSummary = parsed["summary"];
-  const summary =
-    typeof rawSummary === "string" ? rawSummary : "No summary provided";
+  const summary = typeof rawSummary === "string" ? rawSummary : "No summary provided";
 
   const rawFlags = parsed["flags"];
   const flags = Array.isArray(rawFlags) ? rawFlags.map((f) => String(f)) : [];
@@ -55,7 +54,7 @@ function parseEvaluationResult(text: string): EvaluationResult {
 export async function evaluate(
   job: NormalizedJob,
   apiKey: string,
-  delayBefore = true
+  delayBefore = true,
 ): Promise<EvaluationResult> {
   const log = createLogger("EVAL");
 
@@ -71,7 +70,7 @@ export async function evaluate(
     messages: [{ role: "user", content: buildUserMessage(job) }],
   });
 
-  let rawText = "";
+  let rawText: string;
 
   try {
     const response = await fetch(CLAUDE_API_URL, {
@@ -112,7 +111,7 @@ export async function evaluate(
     return parseEvaluationResult(cleaned);
   } catch {
     log.error(
-      `Both parse attempts failed for "${job.title}" at ${job.company}. Raw response: ${rawText.slice(0, 200)}`
+      `Both parse attempts failed for "${job.title}" at ${job.company}. Raw response: ${rawText.slice(0, 200)}`,
     );
     return FALLBACK_RESULT;
   }

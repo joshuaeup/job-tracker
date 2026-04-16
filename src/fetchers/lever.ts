@@ -5,16 +5,14 @@ import type { CompanyConfig, RawJob } from "../types/index.js";
  *
  * @throws {Error} If the HTTP response is not OK.
  */
-export default async function fetchLever(
-  config: CompanyConfig
-): Promise<RawJob[]> {
+export default async function fetchLever(config: CompanyConfig): Promise<RawJob[]> {
   const url = `https://api.lever.co/v0/postings/${config.slug}?mode=json`;
 
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(
-      `Lever fetch failed for ${config.name}: ${response.status} ${response.statusText}`
+      `Lever fetch failed for ${config.name}: ${response.status} ${response.statusText}`,
     );
   }
 

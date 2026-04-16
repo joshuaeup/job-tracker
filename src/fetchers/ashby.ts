@@ -9,16 +9,14 @@ type AshbyResponse = {
  *
  * @throws {Error} If the HTTP response is not OK.
  */
-export default async function fetchAshby(
-  config: CompanyConfig
-): Promise<RawJob[]> {
+export default async function fetchAshby(config: CompanyConfig): Promise<RawJob[]> {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${config.slug}`;
 
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(
-      `Ashby fetch failed for ${config.name}: ${response.status} ${response.statusText}`
+      `Ashby fetch failed for ${config.name}: ${response.status} ${response.statusText}`,
     );
   }
 

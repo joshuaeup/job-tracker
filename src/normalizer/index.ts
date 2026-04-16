@@ -6,6 +6,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+/** Safely converts an unknown value to a string, returning "" for objects/null/undefined. */
+function toStr(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return "";
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
@@ -45,7 +52,10 @@ function parseSalary(compensation: unknown): { min: number | null; max: number |
   };
 }
 
-function parseGreenhouseSalary(metadata: unknown): { min: number | null; max: number | null } {
+function parseGreenhouseSalary(metadata: unknown): {
+  min: number | null;
+  max: number | null;
+} {
   if (!Array.isArray(metadata)) return { min: null, max: null };
 
   const entry = metadata.find(
@@ -71,17 +81,15 @@ function parseGreenhouseSalary(metadata: unknown): { min: number | null; max: nu
 function normalizeGreenhouse(job: RawJob): NormalizedJob {
   const r = job.raw;
 
-  const idRaw = String(r["id"] ?? "");
-  const title = String(r["title"] ?? "");
+  const idRaw = toStr(r["id"]);
+  const title = toStr(r["title"]);
   const location = parseLocation(r["location"]);
-  const url = String(r["absolute_url"] ?? "");
+  const url = toStr(r["absolute_url"]);
 
   const departments = r["departments"];
   const firstDept = Array.isArray(departments) ? departments[0] : undefined;
   const department =
-    isRecord(firstDept) && typeof firstDept["name"] === "string"
-      ? firstDept["name"]
-      : "";
+    isRecord(firstDept) && typeof firstDept["name"] === "string" ? firstDept["name"] : "";
 
   const postedAt =
     typeof r["updated_at"] === "string"
@@ -119,23 +127,19 @@ function normalizeGreenhouse(job: RawJob): NormalizedJob {
 function normalizeLever(job: RawJob): NormalizedJob {
   const r = job.raw;
 
-  const idRaw = String(r["id"] ?? "");
-  const title = String(r["text"] ?? "");
+  const idRaw = toStr(r["id"]);
+  const title = toStr(r["text"]);
 
   const categories = isRecord(r["categories"]) ? r["categories"] : null;
-  const location = String(
-    categories?.["location"] ?? categories?.["allLocations"] ?? ""
-  );
-  const url = String(r["hostedUrl"] ?? "");
-  const department = String(
-    categories?.["team"] ?? categories?.["department"] ?? ""
-  );
+  const location = toStr(categories?.["location"] ?? categories?.["allLocations"]);
+  const url = toStr(r["hostedUrl"]);
+  const department = toStr(categories?.["team"] ?? categories?.["department"]);
 
   const createdAt = r["createdAt"];
   const postedAt =
     typeof createdAt === "number" ? new Date(createdAt).toISOString() : null;
 
-  const descriptionText = String(r["descriptionPlain"] ?? "");
+  const descriptionText = toStr(r["descriptionPlain"]);
   const { min, max } = parseSalary(r["salaryRange"] ?? r["compensation"]);
 
   return {
@@ -157,11 +161,11 @@ function normalizeLever(job: RawJob): NormalizedJob {
 function normalizeAshby(job: RawJob): NormalizedJob {
   const r = job.raw;
 
-  const idRaw = String(r["id"] ?? "");
-  const title = String(r["title"] ?? "");
+  const idRaw = toStr(r["id"]);
+  const title = toStr(r["title"]);
   const location = parseLocation(r["location"] ?? r["locationName"]);
-  const url = String(r["jobUrl"] ?? r["applyUrl"] ?? "");
-  const department = String(r["departmentName"] ?? r["department"] ?? "");
+  const url = toStr(r["jobUrl"] ?? r["applyUrl"]);
+  const department = toStr(r["departmentName"] ?? r["department"]);
 
   const postedAt =
     typeof r["publishedAt"] === "string"
@@ -170,7 +174,7 @@ function normalizeAshby(job: RawJob): NormalizedJob {
         ? r["createdAt"]
         : null;
 
-  const descriptionHtml = String(r["descriptionHtml"] ?? r["description"] ?? "");
+  const descriptionHtml = toStr(r["descriptionHtml"] ?? r["description"]);
   const { min, max } = parseSalary(r["compensation"] ?? r["salaryRange"]);
 
   return {

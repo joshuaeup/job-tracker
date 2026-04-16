@@ -163,10 +163,7 @@ async function runDedup(
  * is re-enabled. That version sends only scored qualifying roles using
  * sendSlackDigest() and includes fit score, recommendation, and summary.
  */
-async function runReviewNotify(
-  jobs: NormalizedJob[],
-  date: string,
-): Promise<void> {
+async function runReviewNotify(jobs: NormalizedJob[], date: string): Promise<void> {
   const log = createLogger("NOTIFY");
 
   const slackWebhook = getEnv("SLACK_WEBHOOK_URL");
@@ -207,8 +204,7 @@ async function run(): Promise<void> {
 
   const rawJobs = await runFetch();
 
-  const { filtered, fetchedCount, filteredCount } =
-    runNormalizeAndFilter(rawJobs);
+  const { filtered, fetchedCount, filteredCount } = runNormalizeAndFilter(rawJobs);
   summary.fetched = fetchedCount;
   summary.filtered = filteredCount;
 
@@ -251,12 +247,8 @@ function printSummary(summary: RunSummary): void {
   console.log("  ├─────────────────────────────────────┤");
   console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
   console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
-  console.log(
-    `  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`,
-  );
-  console.log(
-    `  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`,
-  );
+  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
+  console.log(`  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`);
   console.log("  └─────────────────────────────────────┘");
   console.log("");
 }

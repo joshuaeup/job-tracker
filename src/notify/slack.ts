@@ -44,7 +44,7 @@ function buildReviewDigest(date: string, jobs: NormalizedJob[]): string {
 export async function sendReviewDigest(
   webhookUrl: string,
   date: string,
-  jobs: NormalizedJob[]
+  jobs: NormalizedJob[],
 ): Promise<void> {
   const text = buildReviewDigest(date, jobs);
 
@@ -55,9 +55,7 @@ export async function sendReviewDigest(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Slack webhook failed: ${response.status} ${response.statusText}`
-    );
+    throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
   }
 }
 
@@ -76,7 +74,9 @@ function buildScoredDigest(date: string, scoredJobs: ScoredJob[]): string {
 
   for (const { job, evaluation } of scoredJobs) {
     lines.push(`*${job.company}* — ${job.title}`);
-    lines.push(`>📍 ${job.location}   Score: ${evaluation.fitScore}/100 | ${evaluation.recommendation}`);
+    lines.push(
+      `>📍 ${job.location}   Score: ${evaluation.fitScore}/100 | ${evaluation.recommendation}`,
+    );
     lines.push(`>${evaluation.summary}`);
     lines.push(`><${job.url}|View posting>`);
     lines.push("");
@@ -94,7 +94,7 @@ function buildScoredDigest(date: string, scoredJobs: ScoredJob[]): string {
 export async function sendSlackDigest(
   webhookUrl: string,
   date: string,
-  scoredJobs: ScoredJob[]
+  scoredJobs: ScoredJob[],
 ): Promise<void> {
   const text = buildScoredDigest(date, scoredJobs);
 
@@ -105,8 +105,6 @@ export async function sendSlackDigest(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Slack webhook failed: ${response.status} ${response.statusText}`
-    );
+    throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
   }
 }

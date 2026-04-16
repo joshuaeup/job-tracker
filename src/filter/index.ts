@@ -5,7 +5,7 @@ const TITLE_ALLOWLIST: string[] = rolesConfig.titleAllowlist;
 const SENIORITY_BLOCKLIST: string[] = rolesConfig.titleBlocklist;
 
 const TITLE_ALLOWLIST_PATTERNS = TITLE_ALLOWLIST.map(
-  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i")
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i"),
 );
 
 function passesTitle(title: string): boolean {
@@ -55,15 +55,11 @@ function passesLocation(job: NormalizedJob): boolean {
   // international office roles as isRemote:true (e.g. Notion/Ashby Hyderabad)
   if (COUNTRY_BLOCKLIST.some((country) => lower.includes(country))) return false;
 
-  return (
-    job.remote ||
-    lower.includes("remote") ||
-    lower.includes("charlotte")
-  );
+  return job.remote || lower.includes("remote") || lower.includes("charlotte");
 }
 
 const SENIORITY_BLOCKLIST_PATTERNS = SENIORITY_BLOCKLIST.map(
-  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i")
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i"),
 );
 
 function passesSeniority(title: string): boolean {

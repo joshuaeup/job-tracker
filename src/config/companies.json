@@ -2,7 +2,12 @@
   { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": true },
   { "name": "Plaid", "ats": "ashby", "slug": "plaid", "enabled": true },
   { "name": "Ramp", "ats": "ashby", "slug": "ramp", "enabled": true },
-  { "name": "Nerd Wallet", "ats": "ashby", "slug": "nerdwallet", "enabled": true },
+  {
+    "name": "Nerd Wallet",
+    "ats": "ashby",
+    "slug": "nerdwallet",
+    "enabled": true
+  },
   { "name": "Cribl", "ats": "greenhouse", "slug": "cribl", "enabled": true },
   {
     "name": "Seat Geek",

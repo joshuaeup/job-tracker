@@ -1,17 +1,17 @@
 /** ANSI color codes for terminal output. GitHub Actions supports these natively. */
 const COLOR = {
-  reset:  "\x1b[0m",
-  dim:    "\x1b[2m",
-  bold:   "\x1b[1m",
-  red:    "\x1b[31m",
+  reset: "\x1b[0m",
+  dim: "\x1b[2m",
+  bold: "\x1b[1m",
+  red: "\x1b[31m",
   yellow: "\x1b[33m",
-  cyan:   "\x1b[36m",
-  gray:   "\x1b[90m",
+  cyan: "\x1b[36m",
+  gray: "\x1b[90m",
 } as const;
 
 const LEVEL_FORMAT = {
-  info:  `${COLOR.cyan}INFO ${COLOR.reset}`,
-  warn:  `${COLOR.yellow}WARN ${COLOR.reset}`,
+  info: `${COLOR.cyan}INFO ${COLOR.reset}`,
+  warn: `${COLOR.yellow}WARN ${COLOR.reset}`,
   error: `${COLOR.red}ERROR${COLOR.reset}`,
 } as const;
 
@@ -60,7 +60,7 @@ export function createLogger(stage: string): Logger {
         cause instanceof Error
           ? ` — ${cause.message}`
           : cause !== undefined
-            ? ` — ${String(cause)}`
+            ? ` — ${typeof cause === "string" ? cause : JSON.stringify(cause)}`
             : "";
 
       console.error(formatMessage(stage, "error", `${message}${suffix}`));

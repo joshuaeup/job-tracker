@@ -10,16 +10,14 @@ type GreenhouseResponse = {
  *
  * @throws {Error} If the HTTP response is not OK.
  */
-export default async function fetchGreenhouse(
-  config: CompanyConfig
-): Promise<RawJob[]> {
+export default async function fetchGreenhouse(config: CompanyConfig): Promise<RawJob[]> {
   const url = `https://boards-api.greenhouse.io/v1/boards/${config.slug}/jobs?content=true`;
 
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(
-      `Greenhouse fetch failed for ${config.name}: ${response.status} ${response.statusText}`
+      `Greenhouse fetch failed for ${config.name}: ${response.status} ${response.statusText}`,
     );
   }
 
