@@ -45,6 +45,29 @@ function parseSalary(compensation: unknown): { min: number | null; max: number |
   };
 }
 
+function parseGreenhouseSalary(metadata: unknown): { min: number | null; max: number | null } {
+  if (!Array.isArray(metadata)) return { min: null, max: null };
+
+  const entry = metadata.find(
+    (m): m is Record<string, unknown> =>
+      isRecord(m) && m["value_type"] === "currency_range" && isRecord(m["value"]),
+  );
+
+  if (!entry) return { min: null, max: null };
+
+  const value = entry["value"] as Record<string, unknown>;
+  const rawMin = value["min_value"];
+  const rawMax = value["max_value"];
+
+  const min = typeof rawMin === "string" ? parseFloat(rawMin) : null;
+  const max = typeof rawMax === "string" ? parseFloat(rawMax) : null;
+
+  return {
+    min: min !== null && !isNaN(min) ? min : null,
+    max: max !== null && !isNaN(max) ? max : null,
+  };
+}
+
 function normalizeGreenhouse(job: RawJob): NormalizedJob {
   const r = job.raw;
 
@@ -75,7 +98,7 @@ function normalizeGreenhouse(job: RawJob): NormalizedJob {
         ? content["description"]
         : "";
 
-  const { min, max } = parseSalary(r["salary_range"] ?? r["compensation"]);
+  const { min, max } = parseGreenhouseSalary(r["metadata"]);
 
   return {
     id: `greenhouse:${slugify(job.company)}:${idRaw}`,
@@ -155,7 +178,7 @@ function normalizeAshby(job: RawJob): NormalizedJob {
     title,
     company: job.company,
     location,
-    remote: isRemote(location) || r["isRemote"] === true,
+    remote: isRemote(location) || r["workplaceType"] === "Remote",
     url,
     department,
     ats: "ashby",

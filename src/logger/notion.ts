@@ -13,16 +13,20 @@ function sleep(ms: number): Promise<void> {
  * Falls back to the raw string so Notion creates a new option rather than
  * losing the data entirely.
  */
-function normalizeLocationLabel(location: string): string {
+function normalizeLocationLabel(location: string, remote: boolean): string {
+  if (remote) return "Remote";
+
   const lower = location.toLowerCase();
 
   if (lower.includes("remote")) return "Remote";
   if (lower.includes("charlotte")) return "Charlotte NC";
-  if (lower.includes("new york") || lower.includes(", ny")) return "New York";
+  if (lower.includes("new york") || lower.includes(", ny") || lower.includes("nyc")) return "New York";
   if (lower.includes("london")) return "London";
   if (lower.includes("fort mill")) return "Fort Mill SC";
 
-  return location;
+  // Notion select options don't allow commas — use only the first segment
+  // (e.g. "San Francisco, California" → "San Francisco")
+  return location.split(",")[0]?.trim() ?? location;
 }
 
 function fitScoreLabel(score: number): string {
@@ -73,7 +77,7 @@ export async function logToNotion(
         select: { name: fitScoreLabel(evaluation.fitScore) },
       },
       Location: {
-        select: { name: normalizeLocationLabel(job.location) },
+        select: { name: normalizeLocationLabel(job.location, job.remote) },
       },
       "Salary Range": {
         rich_text: [
@@ -129,7 +133,7 @@ export async function logRawJobsToNotion(
             select: { name: "Researching" },
           },
           Location: {
-            select: { name: normalizeLocationLabel(job.location) },
+            select: { name: normalizeLocationLabel(job.location, job.remote) },
           },
           "Salary Range": {
             rich_text: [

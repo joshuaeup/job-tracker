@@ -35,20 +35,54 @@ const SENIORITY_BLOCKLIST = [
   "advocate",
 ];
 
+const TITLE_ALLOWLIST_PATTERNS = TITLE_ALLOWLIST.map(
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i")
+);
+
 function passesTitle(title: string): boolean {
-  const lower = title.toLowerCase();
-  return TITLE_ALLOWLIST.some((kw) => lower.includes(kw));
+  return TITLE_ALLOWLIST_PATTERNS.some((re) => re.test(title));
 }
+
+const COUNTRY_BLOCKLIST = [
+  "canada",
+  "india",
+  "uk",
+  "united kingdom",
+  "london",
+  "germany",
+  "france",
+  "australia",
+  "singapore",
+  "mexico",
+  "japan",
+  "ireland",
+  "netherlands",
+  "spain",
+  "sweden",
+  "brazil",
+];
 
 function passesLocation(job: NormalizedJob): boolean {
   if (!job.location) return true;
   const lower = job.location.toLowerCase();
-  return job.remote || lower.includes("charlotte") || lower.includes("remote");
+
+  // Block non-US locations regardless of the remote flag — some ATS mark
+  // international office roles as isRemote:true (e.g. Notion/Ashby Hyderabad)
+  if (COUNTRY_BLOCKLIST.some((country) => lower.includes(country))) return false;
+
+  return (
+    job.remote ||
+    lower.includes("remote") ||
+    lower.includes("charlotte")
+  );
 }
 
+const SENIORITY_BLOCKLIST_PATTERNS = SENIORITY_BLOCKLIST.map(
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i")
+);
+
 function passesSeniority(title: string): boolean {
-  const lower = title.toLowerCase();
-  return !SENIORITY_BLOCKLIST.some((kw) => lower.includes(kw));
+  return !SENIORITY_BLOCKLIST_PATTERNS.some((re) => re.test(title));
 }
 
 /**

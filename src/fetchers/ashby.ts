@@ -1,7 +1,7 @@
 import type { CompanyConfig, RawJob } from "../types/index.js";
 
 type AshbyResponse = {
-  jobPostings: Record<string, unknown>[];
+  jobs: Record<string, unknown>[];
 };
 
 /**
@@ -23,7 +23,7 @@ export default async function fetchAshby(
   }
 
   const data = (await response.json()) as AshbyResponse;
-  const postings = data.jobPostings ?? [];
+  const postings = data.jobs ?? [];
 
   return postings.map((item) => ({
     source: "ashby" as const,
