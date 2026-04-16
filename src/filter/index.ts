@@ -27,12 +27,16 @@ const SENIORITY_BLOCKLIST = [
   "full-stack",
   "full stack",
   "manager",
+  "director",
   "principal",
   "staff",
   "android",
   "ios",
   "mobile",
   "advocate",
+  "frontend",
+  "front-end",
+  "front end",
 ];
 
 const TITLE_ALLOWLIST_PATTERNS = TITLE_ALLOWLIST.map(
