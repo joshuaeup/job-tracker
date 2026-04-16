@@ -26,6 +26,12 @@
     "enabled": true
   },
   {
+    "name": "New Relic",
+    "ats": "greenhouse",
+    "slug": "newrelic",
+    "enabled": true
+  },
+  {
     "name": "Headway",
     "ats": "greenhouse",
     "slug": "headway",
