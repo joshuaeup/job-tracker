@@ -13,5 +13,11 @@
     "enabled": true
   },
   { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": true },
-  { "name": "Postman", "ats": "greenhouse", "slug": "postman", "enabled": true }
+  {
+    "name": "Postman",
+    "ats": "greenhouse",
+    "slug": "postman",
+    "enabled": true
+  },
+  { "name": "Vercel", "ats": "greenhouse", "slug": "vercel", "enabled": true }
 ]
