@@ -1,5 +1,5 @@
-import type { NormalizedJob } from "../types/index.js";
-import { TARGET_ROLE_PROFILE } from "../config/target-role-profile.js";
+import type { NormalizedJob } from '../types/index.js';
+import { TARGET_ROLE_PROFILE } from '../config/target-role-profile.js';
 
 /**
  * System prompt injected into every Claude evaluation call.
@@ -37,7 +37,7 @@ export function buildUserMessage(job: NormalizedJob): string {
       ? `$${job.salaryMin.toLocaleString()}–$${job.salaryMax.toLocaleString()}`
       : job.salaryMin !== null
         ? `$${job.salaryMin.toLocaleString()}+`
-        : "Not listed";
+        : 'Not listed';
 
   return `Job Title:   ${job.title}
 Company:     ${job.company}

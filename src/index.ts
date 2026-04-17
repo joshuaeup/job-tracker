@@ -1,21 +1,20 @@
-import "dotenv/config";
-import { Client } from "@notionhq/client";
-import companies from "./config/companies.json" with { type: "json" };
+import 'dotenv/config';
+import { Client } from '@notionhq/client';
+import { companies } from './config/companies/index.js';
 import type {
-  CompanyConfig,
   NormalizedJob,
   RawJob,
   // TODO: restore ScoredJob when Claude evaluation is re-enabled
   // ScoredJob,
   RunSummary,
-} from "./types/index.js";
-import { createLogger } from "./lib/logger.js";
-import { fetchAll } from "./fetchers/index.js";
-import { normalize } from "./normalizer/index.js";
-import { filter } from "./filter/index.js";
-import { fetchSeenUrls, deduplicate } from "./dedup/notion.js";
-import { logRawJobsToNotion } from "./logger/notion.js";
-import { sendReviewDigest } from "./notify/slack.js";
+} from './types/index.js';
+import { createLogger } from './lib/logger.js';
+import { fetchAll } from './fetchers/index.js';
+import { normalize } from './normalizer/index.js';
+import { filter } from './filter/index.js';
+import { fetchSeenUrls, deduplicate } from './dedup/notion.js';
+import { logRawJobsToNotion } from './logger/notion.js';
+import { sendReviewDigest } from './notify/slack.js';
 
 // TODO: Re-enable these imports once an Anthropic API key is available and
 // pay-per-token usage is set up. The evaluate + log stages are fully built
@@ -47,7 +46,7 @@ function today(): string {
  * Failures for individual companies are logged and skipped.
  */
 async function runFetch(): Promise<RawJob[]> {
-  return fetchAll(companies as CompanyConfig[]);
+  return fetchAll(companies);
 }
 
 /**
@@ -60,7 +59,7 @@ function runNormalizeAndFilter(rawJobs: RawJob[]): {
   fetchedCount: number;
   filteredCount: number;
 } {
-  const log = createLogger("FILTER");
+  const log = createLogger('FILTER');
 
   const normalized = normalize(rawJobs);
   log.info(`Normalized: ${normalized.length} jobs`);
@@ -85,9 +84,9 @@ async function runDedup(
   databaseId: string,
   jobs: NormalizedJob[],
 ): Promise<NormalizedJob[]> {
-  const log = createLogger("DEDUP");
+  const log = createLogger('DEDUP');
 
-  log.info("Prefetching existing URLs from Notion...");
+  log.info('Prefetching existing URLs from Notion...');
   const seenUrls = await fetchSeenUrls(notion, databaseId);
   log.info(`Known URLs in Notion: ${seenUrls.size}`);
 
@@ -163,12 +162,15 @@ async function runDedup(
  * is re-enabled. That version sends only scored qualifying roles using
  * sendSlackDigest() and includes fit score, recommendation, and summary.
  */
-async function runReviewNotify(jobs: NormalizedJob[], date: string): Promise<void> {
-  const log = createLogger("NOTIFY");
+async function runReviewNotify(
+  jobs: NormalizedJob[],
+  date: string,
+): Promise<void> {
+  const log = createLogger('NOTIFY');
 
-  const slackWebhook = getEnv("SLACK_WEBHOOK_URL");
+  const slackWebhook = getEnv('SLACK_WEBHOOK_URL');
   if (!slackWebhook) {
-    log.info("SLACK_WEBHOOK_URL not set — skipping notification");
+    log.info('SLACK_WEBHOOK_URL not set — skipping notification');
     return;
   }
 
@@ -176,21 +178,21 @@ async function runReviewNotify(jobs: NormalizedJob[], date: string): Promise<voi
     await sendReviewDigest(slackWebhook, date, jobs);
     log.info(`Slack review digest sent — ${jobs.length} role(s)`);
   } catch (err: unknown) {
-    log.error("Slack send failed", err);
+    log.error('Slack send failed', err);
   }
 }
 
 // ── Orchestrator ──────────────────────────────────────────────────────────────
 
 async function run(): Promise<void> {
-  const log = createLogger("PIPELINE");
+  const log = createLogger('PIPELINE');
 
   log.info(`Starting job search pipeline — ${today()}`);
 
   // TODO: Remove ANTHROPIC_API_KEY from required env vars once evaluation
   // is re-enabled. Not needed while Claude stage is commented out.
-  const notionToken = requireEnv("NOTION_TOKEN");
-  const notionDatabaseId = requireEnv("NOTION_DATABASE_ID");
+  const notionToken = requireEnv('NOTION_TOKEN');
+  const notionDatabaseId = requireEnv('NOTION_DATABASE_ID');
 
   const notion = new Client({ auth: notionToken });
   const summary: RunSummary = {
@@ -204,7 +206,8 @@ async function run(): Promise<void> {
 
   const rawJobs = await runFetch();
 
-  const { filtered, fetchedCount, filteredCount } = runNormalizeAndFilter(rawJobs);
+  const { filtered, fetchedCount, filteredCount } =
+    runNormalizeAndFilter(rawJobs);
   summary.fetched = fetchedCount;
   summary.filtered = filteredCount;
 
@@ -212,7 +215,7 @@ async function run(): Promise<void> {
   summary.deduplicated = newJobs.length;
 
   if (newJobs.length === 0) {
-    log.info("No new roles found. Exiting.");
+    log.info('No new roles found. Exiting.');
 
     await runReviewNotify(newJobs, today());
     printSummary(summary);
@@ -241,19 +244,23 @@ async function run(): Promise<void> {
 // ── Output ────────────────────────────────────────────────────────────────────
 
 function printSummary(summary: RunSummary): void {
-  console.log("");
-  console.log("  ┌─────────────────────────────────────┐");
-  console.log("  │         Pipeline Run Summary         │");
-  console.log("  ├─────────────────────────────────────┤");
+  console.log('');
+  console.log('  ┌─────────────────────────────────────┐');
+  console.log('  │         Pipeline Run Summary         │');
+  console.log('  ├─────────────────────────────────────┤');
   console.log(`  │  Fetched        ${String(summary.fetched).padStart(20)} │`);
   console.log(`  │  Filtered       ${String(summary.filtered).padStart(20)} │`);
-  console.log(`  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`);
-  console.log(`  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`);
-  console.log("  └─────────────────────────────────────┘");
-  console.log("");
+  console.log(
+    `  │  New (deduped)  ${String(summary.deduplicated).padStart(20)} │`,
+  );
+  console.log(
+    `  │  Sent to Slack  ${String(summary.deduplicated).padStart(20)} │`,
+  );
+  console.log('  └─────────────────────────────────────┘');
+  console.log('');
 }
 
 run().catch((err: unknown) => {
-  createLogger("PIPELINE").error("Fatal error", err);
+  createLogger('PIPELINE').error('Fatal error', err);
   process.exit(1);
 });

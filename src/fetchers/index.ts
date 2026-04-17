@@ -1,8 +1,8 @@
-import type { CompanyConfig, RawJob } from "../types/index.js";
-import { createLogger } from "../lib/logger.js";
-import fetchGreenhouse from "./greenhouse.js";
-import fetchLever from "./lever.js";
-import fetchAshby from "./ashby.js";
+import type { CompanyConfig, RawJob } from '../types/index.js';
+import { createLogger } from '../lib/logger.js';
+import fetchGreenhouse from './greenhouse.js';
+import fetchLever from './lever.js';
+import fetchAshby from './ashby.js';
 
 const FETCHERS = {
   greenhouse: fetchGreenhouse,
@@ -16,7 +16,7 @@ const FETCHERS = {
  * the full run.
  */
 export async function fetchAll(companies: CompanyConfig[]): Promise<RawJob[]> {
-  const log = createLogger("FETCH");
+  const log = createLogger('FETCH');
   const enabled = companies.filter((c) => c.enabled);
   const allJobs: RawJob[] = [];
 

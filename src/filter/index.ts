@@ -1,11 +1,11 @@
-import type { NormalizedJob } from "../types/index.js";
-import rolesConfig from "../config/roles.json" with { type: "json" };
+import type { NormalizedJob } from '../types/index.js';
+import rolesConfig from '../config/roles.json' with { type: 'json' };
 
 const TITLE_ALLOWLIST: string[] = rolesConfig.titleAllowlist;
 const SENIORITY_BLOCKLIST: string[] = rolesConfig.titleBlocklist;
 
 const TITLE_ALLOWLIST_PATTERNS = TITLE_ALLOWLIST.map(
-  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i"),
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, '\\-')}\\b`, 'i'),
 );
 
 function passesTitle(title: string): boolean {
@@ -13,38 +13,38 @@ function passesTitle(title: string): boolean {
 }
 
 const COUNTRY_BLOCKLIST = [
-  "canada",
-  "toronto",
-  "vancouver",
-  "montreal",
-  "ottawa",
-  "calgary",
-  ", can",
-  "-can",
-  "india",
-  "hyderabad",
-  "bangalore",
-  "bengaluru",
-  "uk",
-  "united kingdom",
-  "london",
-  "germany",
-  "berlin",
-  "france",
-  "paris",
-  "australia",
-  "sydney",
-  "melbourne",
-  "singapore",
-  "mexico",
-  "japan",
-  "tokyo",
-  "ireland",
-  "dublin",
-  "netherlands",
-  "spain",
-  "sweden",
-  "brazil",
+  'canada',
+  'toronto',
+  'vancouver',
+  'montreal',
+  'ottawa',
+  'calgary',
+  ', can',
+  '-can',
+  'india',
+  'hyderabad',
+  'bangalore',
+  'bengaluru',
+  'uk',
+  'united kingdom',
+  'london',
+  'germany',
+  'berlin',
+  'france',
+  'paris',
+  'australia',
+  'sydney',
+  'melbourne',
+  'singapore',
+  'mexico',
+  'japan',
+  'tokyo',
+  'ireland',
+  'dublin',
+  'netherlands',
+  'spain',
+  'sweden',
+  'brazil',
 ];
 
 function passesLocation(job: NormalizedJob): boolean {
@@ -53,13 +53,14 @@ function passesLocation(job: NormalizedJob): boolean {
 
   // Block non-US locations regardless of the remote flag — some ATS mark
   // international office roles as isRemote:true (e.g. Notion/Ashby Hyderabad)
-  if (COUNTRY_BLOCKLIST.some((country) => lower.includes(country))) return false;
+  if (COUNTRY_BLOCKLIST.some((country) => lower.includes(country)))
+    return false;
 
-  return job.remote || lower.includes("remote") || lower.includes("charlotte");
+  return job.remote || lower.includes('remote') || lower.includes('charlotte');
 }
 
 const SENIORITY_BLOCKLIST_PATTERNS = SENIORITY_BLOCKLIST.map(
-  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, "\\-")}\\b`, "i"),
+  (kw) => new RegExp(`\\b${kw.replace(/[-]/g, '\\-')}\\b`, 'i'),
 );
 
 function passesSeniority(title: string): boolean {

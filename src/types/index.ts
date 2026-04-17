@@ -3,7 +3,7 @@ export type CompanyConfig = {
   /** Display name shown in logs and Notion rows. */
   name: string;
   /** ATS platform this company uses. */
-  ats: "greenhouse" | "lever" | "ashby";
+  ats: 'greenhouse' | 'lever' | 'ashby';
   /** ATS board slug used to construct the API URL. */
   slug: string;
   /** Set to false to pause fetching without removing the entry. */
@@ -13,7 +13,7 @@ export type CompanyConfig = {
 /** Raw job posting as returned by an ATS fetcher, before normalization. */
 export type RawJob = {
   /** Which ATS platform produced this record. */
-  source: "greenhouse" | "lever" | "ashby";
+  source: 'greenhouse' | 'lever' | 'ashby';
   /** Display name of the company this job belongs to. */
   company: string;
   /** Untouched response object from the ATS API. */
@@ -33,7 +33,7 @@ export type NormalizedJob = {
   /** Direct link to the job posting. */
   url: string;
   department: string;
-  ats: "greenhouse" | "lever" | "ashby";
+  ats: 'greenhouse' | 'lever' | 'ashby';
   /** ISO 8601 date string if available, otherwise null. */
   postedAt: string | null;
   /** Minimum salary in USD if listed, otherwise null. */
@@ -49,7 +49,7 @@ export type EvaluationResult = {
   /** Fit score from 0–100 against the Target Role Profile. */
   fitScore: number;
   /** Recommended action based on the fit score and flag criteria. */
-  recommendation: "apply" | "research" | "skip";
+  recommendation: 'apply' | 'research' | 'skip';
   /** 2–3 sentence plain-language assessment of the role. */
   summary: string;
   /** Array of specific red/amber/green flags triggered during evaluation. */

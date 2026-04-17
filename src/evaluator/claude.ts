@@ -1,16 +1,16 @@
-import type { NormalizedJob, EvaluationResult } from "../types/index.js";
-import { createLogger } from "../lib/logger.js";
-import { SYSTEM_PROMPT, buildUserMessage } from "./prompt.js";
+import type { NormalizedJob, EvaluationResult } from '../types/index.js';
+import { createLogger } from '../lib/logger.js';
+import { SYSTEM_PROMPT, buildUserMessage } from './prompt.js';
 
-const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+const CLAUDE_MODEL = 'claude-sonnet-4-6';
 const CLAUDE_RATE_DELAY_MS = 500;
 
 const FALLBACK_RESULT: EvaluationResult = {
   fitScore: 0,
-  recommendation: "skip",
-  summary: "Parse error — manual review required",
-  flags: ["evaluation_failed"],
+  recommendation: 'skip',
+  summary: 'Parse error — manual review required',
+  flags: ['evaluation_failed'],
 };
 
 function sleep(ms: number): Promise<void> {
@@ -24,18 +24,19 @@ type AnthropicMessage = {
 function parseEvaluationResult(text: string): EvaluationResult {
   const parsed = JSON.parse(text) as Record<string, unknown>;
 
-  const rawScore = parsed["fitScore"];
+  const rawScore = parsed['fitScore'];
   const fitScore =
-    typeof rawScore === "number" ? Math.min(100, Math.max(0, rawScore)) : 0;
+    typeof rawScore === 'number' ? Math.min(100, Math.max(0, rawScore)) : 0;
 
-  const rec = parsed["recommendation"];
-  const recommendation: EvaluationResult["recommendation"] =
-    rec === "apply" || rec === "research" || rec === "skip" ? rec : "skip";
+  const rec = parsed['recommendation'];
+  const recommendation: EvaluationResult['recommendation'] =
+    rec === 'apply' || rec === 'research' || rec === 'skip' ? rec : 'skip';
 
-  const rawSummary = parsed["summary"];
-  const summary = typeof rawSummary === "string" ? rawSummary : "No summary provided";
+  const rawSummary = parsed['summary'];
+  const summary =
+    typeof rawSummary === 'string' ? rawSummary : 'No summary provided';
 
-  const rawFlags = parsed["flags"];
+  const rawFlags = parsed['flags'];
   const flags = Array.isArray(rawFlags) ? rawFlags.map((f) => String(f)) : [];
 
   return { fitScore, recommendation, summary, flags };
@@ -56,7 +57,7 @@ export async function evaluate(
   apiKey: string,
   delayBefore = true,
 ): Promise<EvaluationResult> {
-  const log = createLogger("EVAL");
+  const log = createLogger('EVAL');
 
   if (delayBefore) {
     await sleep(CLAUDE_RATE_DELAY_MS);
@@ -67,18 +68,18 @@ export async function evaluate(
     max_tokens: 600,
     temperature: 0,
     system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: buildUserMessage(job) }],
+    messages: [{ role: 'user', content: buildUserMessage(job) }],
   });
 
   let rawText: string;
 
   try {
     const response = await fetch(CLAUDE_API_URL, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
       },
       body,
     });
@@ -89,8 +90,8 @@ export async function evaluate(
     }
 
     const data = (await response.json()) as AnthropicMessage;
-    const block = data.content.find((b) => b.type === "text");
-    rawText = block?.text ?? "";
+    const block = data.content.find((b) => b.type === 'text');
+    rawText = block?.text ?? '';
   } catch (err: unknown) {
     log.error(`API call failed for "${job.title}" at ${job.company}`, err);
     return FALLBACK_RESULT;
@@ -99,13 +100,15 @@ export async function evaluate(
   try {
     return parseEvaluationResult(rawText);
   } catch {
-    log.warn(`First parse failed for "${job.title}" — retrying after stripping fences`);
+    log.warn(
+      `First parse failed for "${job.title}" — retrying after stripping fences`,
+    );
   }
 
   try {
     const cleaned = rawText
-      .replace(/^```(?:json)?\s*/i, "")
-      .replace(/\s*```$/, "")
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
       .trim();
 
     return parseEvaluationResult(cleaned);

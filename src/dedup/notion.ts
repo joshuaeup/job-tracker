@@ -1,5 +1,5 @@
-import type { Client } from "@notionhq/client";
-import type { NormalizedJob } from "../types/index.js";
+import type { Client } from '@notionhq/client';
+import type { NormalizedJob } from '../types/index.js';
 
 const NOTION_RATE_DELAY_MS = 400;
 
@@ -29,17 +29,21 @@ export async function fetchSeenUrls(
     );
 
     for (const page of response.results) {
-      if (!("properties" in page)) continue;
+      if (!('properties' in page)) continue;
       const props = page.properties;
 
-      const urlProp = props["Job Posting URL"];
-      if (urlProp?.type === "url" && typeof urlProp.url === "string" && urlProp.url) {
+      const urlProp = props['Job Posting URL'];
+      if (
+        urlProp?.type === 'url' &&
+        typeof urlProp.url === 'string' &&
+        urlProp.url
+      ) {
         seen.add(urlProp.url);
       }
     }
 
     const next = response.has_more ? response.next_cursor : null;
-    cursor = typeof next === "string" ? next : undefined;
+    cursor = typeof next === 'string' ? next : undefined;
 
     if (cursor) {
       await sleep(NOTION_RATE_DELAY_MS);

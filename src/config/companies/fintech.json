@@ -1,0 +1,8 @@
+[
+  { "name": "Brex", "ats": "greenhouse", "slug": "brex", "enabled": true },
+  { "name": "Chime", "ats": "greenhouse", "slug": "chime", "enabled": true },
+  { "name": "Nerd Wallet", "ats": "ashby", "slug": "nerdwallet", "enabled": true },
+  { "name": "Plaid", "ats": "ashby", "slug": "plaid", "enabled": true },
+  { "name": "Ramp", "ats": "ashby", "slug": "ramp", "enabled": true },
+  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": true }
+]

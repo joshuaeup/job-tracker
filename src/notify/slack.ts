@@ -1,4 +1,4 @@
-import type { NormalizedJob, ScoredJob } from "../types/index.js";
+import type { NormalizedJob, ScoredJob } from '../types/index.js';
 
 // ── Manual review digest (active) ────────────────────────────────────────────
 
@@ -7,7 +7,7 @@ function formatSalary(min: number | null, max: number | null): string {
     return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
   }
   if (min !== null) return `$${min.toLocaleString()}+`;
-  return "Not listed";
+  return 'Not listed';
 }
 
 function buildReviewDigest(date: string, jobs: NormalizedJob[]): string {
@@ -18,21 +18,21 @@ function buildReviewDigest(date: string, jobs: NormalizedJob[]): string {
   const lines = [
     `*🔍 Job Search Run — ${date}*`,
     `*${jobs.length} new role(s) passed filters — manual review needed*`,
-    "",
+    '',
   ];
 
   for (const job of jobs) {
     const salary = formatSalary(job.salaryMin, job.salaryMax);
-    const remote = job.remote ? "Remote" : job.location;
+    const remote = job.remote ? 'Remote' : job.location;
 
     lines.push(`*${job.company}*`);
     lines.push(`>${job.title}`);
     lines.push(`>📍 ${remote}   💰 ${salary}`);
     lines.push(`><${job.url}|View posting>`);
-    lines.push("");
+    lines.push('');
   }
 
-  return lines.join("\n").trim();
+  return lines.join('\n').trim();
 }
 
 /**
@@ -49,13 +49,15 @@ export async function sendReviewDigest(
   const text = buildReviewDigest(date, jobs);
 
   const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
   });
 
   if (!response.ok) {
-    throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Slack webhook failed: ${response.status} ${response.statusText}`,
+    );
   }
 }
 
@@ -69,7 +71,7 @@ function buildScoredDigest(date: string, scoredJobs: ScoredJob[]): string {
   const lines = [
     `*Job Search Run — ${date}*`,
     `${scoredJobs.length} qualifying role(s) found`,
-    "",
+    '',
   ];
 
   for (const { job, evaluation } of scoredJobs) {
@@ -79,10 +81,10 @@ function buildScoredDigest(date: string, scoredJobs: ScoredJob[]): string {
     );
     lines.push(`>${evaluation.summary}`);
     lines.push(`><${job.url}|View posting>`);
-    lines.push("");
+    lines.push('');
   }
 
-  return lines.join("\n").trim();
+  return lines.join('\n').trim();
 }
 
 /**
@@ -99,12 +101,14 @@ export async function sendSlackDigest(
   const text = buildScoredDigest(date, scoredJobs);
 
   const response = await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text }),
   });
 
   if (!response.ok) {
-    throw new Error(`Slack webhook failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Slack webhook failed: ${response.status} ${response.statusText}`,
+    );
   }
 }

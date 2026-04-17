@@ -1,12 +1,12 @@
 /** ANSI color codes for terminal output. GitHub Actions supports these natively. */
 const COLOR = {
-  reset: "\x1b[0m",
-  dim: "\x1b[2m",
-  bold: "\x1b[1m",
-  red: "\x1b[31m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  gray: "\x1b[90m",
+  reset: '\x1b[0m',
+  dim: '\x1b[2m',
+  bold: '\x1b[1m',
+  red: '\x1b[31m',
+  yellow: '\x1b[33m',
+  cyan: '\x1b[36m',
+  gray: '\x1b[90m',
 } as const;
 
 const LEVEL_FORMAT = {
@@ -48,11 +48,11 @@ export type Logger = {
 export function createLogger(stage: string): Logger {
   return {
     info(message: string): void {
-      console.log(formatMessage(stage, "info", message));
+      console.log(formatMessage(stage, 'info', message));
     },
 
     warn(message: string): void {
-      console.warn(formatMessage(stage, "warn", message));
+      console.warn(formatMessage(stage, 'warn', message));
     },
 
     error(message: string, cause?: unknown): void {
@@ -60,10 +60,10 @@ export function createLogger(stage: string): Logger {
         cause instanceof Error
           ? ` — ${cause.message}`
           : cause !== undefined
-            ? ` — ${typeof cause === "string" ? cause : JSON.stringify(cause)}`
-            : "";
+            ? ` — ${typeof cause === 'string' ? cause : JSON.stringify(cause)}`
+            : '';
 
-      console.error(formatMessage(stage, "error", `${message}${suffix}`));
+      console.error(formatMessage(stage, 'error', `${message}${suffix}`));
     },
   };
 }

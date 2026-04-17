@@ -1,6 +1,6 @@
-import type { Client } from "@notionhq/client";
-import type { NormalizedJob, ScoredJob } from "../types/index.js";
-import { createLogger } from "../lib/logger.js";
+import type { Client } from '@notionhq/client';
+import type { NormalizedJob, ScoredJob } from '../types/index.js';
+import { createLogger } from '../lib/logger.js';
 
 const NOTION_RATE_DELAY_MS = 400;
 
@@ -14,27 +14,31 @@ function sleep(ms: number): Promise<void> {
  * losing the data entirely.
  */
 function normalizeLocationLabel(location: string, remote: boolean): string {
-  if (remote) return "Remote";
+  if (remote) return 'Remote';
 
   const lower = location.toLowerCase();
 
-  if (lower.includes("remote")) return "Remote";
-  if (lower.includes("charlotte")) return "Charlotte NC";
-  if (lower.includes("new york") || lower.includes(", ny") || lower.includes("nyc"))
-    return "New York";
-  if (lower.includes("london")) return "London";
-  if (lower.includes("fort mill")) return "Fort Mill SC";
+  if (lower.includes('remote')) return 'Remote';
+  if (lower.includes('charlotte')) return 'Charlotte NC';
+  if (
+    lower.includes('new york') ||
+    lower.includes(', ny') ||
+    lower.includes('nyc')
+  )
+    return 'New York';
+  if (lower.includes('london')) return 'London';
+  if (lower.includes('fort mill')) return 'Fort Mill SC';
 
   // Notion select options don't allow commas — use only the first segment
   // (e.g. "San Francisco, California" → "San Francisco")
-  return location.split(",")[0]?.trim() ?? location;
+  return location.split(',')[0]?.trim() ?? location;
 }
 
 function fitScoreLabel(score: number): string {
-  if (score >= 85) return "Strong Fit";
-  if (score >= 70) return "Good Fit";
-  if (score >= 50) return "Reach";
-  return "Poor Fit";
+  if (score >= 85) return 'Strong Fit';
+  if (score >= 70) return 'Good Fit';
+  if (score >= 50) return 'Reach';
+  return 'Poor Fit';
 }
 
 function formatSalary(min: number | null, max: number | null): string {
@@ -42,7 +46,7 @@ function formatSalary(min: number | null, max: number | null): string {
     return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
   }
   if (min !== null) return `$${min.toLocaleString()}+`;
-  return "Not listed";
+  return 'Not listed';
 }
 
 /**
@@ -58,7 +62,7 @@ export async function logToNotion(
   scoredJob: ScoredJob,
 ): Promise<void> {
   const { job, evaluation } = scoredJob;
-  const notes = `${evaluation.summary}\n\nFlags: ${evaluation.flags.join(", ")}`;
+  const notes = `${evaluation.summary}\n\nFlags: ${evaluation.flags.join(', ')}`;
 
   await notion.pages.create({
     parent: { database_id: databaseId },
@@ -68,22 +72,24 @@ export async function logToNotion(
         title: [{ text: { content: job.company } }],
       },
       // "Role Title" is a Text property
-      "Role Title": {
+      'Role Title': {
         rich_text: [{ text: { content: job.title } }],
       },
       Status: {
-        select: { name: "Researching" },
+        select: { name: 'Researching' },
       },
-      "Fit Score": {
+      'Fit Score': {
         select: { name: fitScoreLabel(evaluation.fitScore) },
       },
       Location: {
         select: { name: normalizeLocationLabel(job.location, job.remote) },
       },
-      "Salary Range": {
-        rich_text: [{ text: { content: formatSalary(job.salaryMin, job.salaryMax) } }],
+      'Salary Range': {
+        rich_text: [
+          { text: { content: formatSalary(job.salaryMin, job.salaryMax) } },
+        ],
       },
-      "Job Posting URL": {
+      'Job Posting URL': {
         url: job.url,
       },
       // "Notes" is a Text property — add this column to your database if not present
@@ -110,7 +116,7 @@ export async function logRawJobsToNotion(
   databaseId: string,
   jobs: NormalizedJob[],
 ): Promise<number> {
-  const log = createLogger("LOG");
+  const log = createLogger('LOG');
   let logged = 0;
 
   for (const job of jobs) {
@@ -125,21 +131,21 @@ export async function logRawJobsToNotion(
           Company: {
             title: [{ text: { content: job.company } }],
           },
-          "Role Title": {
+          'Role Title': {
             rich_text: [{ text: { content: job.title } }],
           },
           Status: {
-            select: { name: "Researching" },
+            select: { name: 'Researching' },
           },
           Location: {
             select: { name: normalizeLocationLabel(job.location, job.remote) },
           },
-          "Salary Range": {
+          'Salary Range': {
             rich_text: [
               { text: { content: formatSalary(job.salaryMin, job.salaryMax) } },
             ],
           },
-          "Job Posting URL": {
+          'Job Posting URL': {
             url: job.url,
           },
         },
@@ -166,13 +172,13 @@ export async function logAllToNotion(
   databaseId: string,
   scoredJobs: ScoredJob[],
 ): Promise<number> {
-  const log = createLogger("LOG");
+  const log = createLogger('LOG');
   let logged = 0;
 
   for (const scoredJob of scoredJobs) {
     const { recommendation } = scoredJob.evaluation;
 
-    if (recommendation !== "apply" && recommendation !== "research") {
+    if (recommendation !== 'apply' && recommendation !== 'research') {
       continue;
     }
 
