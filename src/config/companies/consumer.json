@@ -1,3 +1,9 @@
 [
-  { "name": "Seat Geek", "ats": "greenhouse", "slug": "seatgeek", "enabled": true }
+  {
+    "name": "Seat Geek",
+    "ats": "greenhouse",
+    "slug": "seatgeek",
+    "enabled": true
+  },
+  { "name": "Clear", "ats": "greenhouse", "slug": "clear", "enabled": true }
 ]
