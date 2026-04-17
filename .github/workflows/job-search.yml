@@ -2,8 +2,8 @@ name: Job Search Automation
 
 on:
   schedule:
-    # Runs at 8:00 AM UTC every day
-    - cron: "0 8 * * *"  # 9am ET, weekdays only
+    # Runs at 10:00 AM EST (15:00 UTC) every day
+    - cron: "0 15 * * *"
   workflow_dispatch: # Manual trigger for testing
 
 jobs:
