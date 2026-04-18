@@ -3,3 +3,4 @@ dist/
 .env
 *.env.local
 src/config/companies/
+src/config/roles.json
