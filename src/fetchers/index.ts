@@ -1,8 +1,8 @@
-import type { CompanyConfig, RawJob } from '../types/index.js';
 import { createLogger } from '../lib/logger.js';
+import type { CompanyConfig, RawJob } from '../types/index.js';
+import fetchAshby from './ashby.js';
 import fetchGreenhouse from './greenhouse.js';
 import fetchLever from './lever.js';
-import fetchAshby from './ashby.js';
 import fetchWorkday from './workday.js';
 
 const FETCHERS = {

@@ -1,5 +1,5 @@
-import type { NormalizedJob } from '../types/index.js';
 import rolesConfig from '../config/roles.json' with { type: 'json' };
+import type { NormalizedJob } from '../types/index.js';
 
 const TITLE_ALLOWLIST: string[] = rolesConfig.titleAllowlist;
 const SENIORITY_BLOCKLIST: string[] = rolesConfig.titleBlocklist;

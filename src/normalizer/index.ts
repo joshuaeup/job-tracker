@@ -1,5 +1,5 @@
-import type { RawJob, NormalizedJob } from '../types/index.js';
 import { createLogger } from '../lib/logger.js';
+import type { NormalizedJob, RawJob } from '../types/index.js';
 
 /** Returns true if `value` is a non-null, non-array plain object. */
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -211,7 +211,8 @@ function normalizeWorkday(job: RawJob): NormalizedJob {
   const url = externalPath ? `${baseUrl}${externalPath}` : '';
 
   // jobReqId is the stable identifier; fall back to extracting from externalPath
-  const idRaw = toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
+  const idRaw =
+    toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
     externalPath.split('_').pop() ||
     externalPath;
 

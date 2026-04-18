@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      typescript-eslint:
+        patterns:
+          - typescript-eslint
+          - '@typescript-eslint/*'
+      commitlint:
+        patterns:
+          - '@commitlint/*'
+      vitest:
+        patterns:
+          - vitest
+          - '@vitest/*'
+    ignore:
+      # Patch versions are low-risk; let them accumulate before reviewing
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
