@@ -22,7 +22,7 @@ const normalizeLocationLabel = (location: string, remote: boolean): string => {
   if (lower.includes('charlotte')) return 'Charlotte NC';
   if (
     lower.includes('new york') ||
-    lower.includes(', ny') ||
+    lower.includes('ny') ||
     lower.includes('nyc')
   )
     return 'New York';

@@ -1,9 +1,9 @@
 import {
-  fakeAshbyRaw,
-  fakeGreenhouseRaw,
-  fakeLeverRaw,
-  fakeRawJob,
-} from '../testing/factories/raw-job.factory.js';
+  fakeAshbyRawJob,
+  fakeGreenhouseRawJob,
+  fakeLeverRawJob,
+  fakeWorkdayRawJob,
+} from './factories/normalizer.factory.js';
 import { normalize } from './index.js';
 
 describe('normalize', () => {
@@ -11,15 +11,16 @@ describe('normalize', () => {
 
   describe('greenhouse jobs', () => {
     it('maps id, title, location, url, and department', () => {
-      const raw = fakeGreenhouseRaw({
-        id: 123,
-        title: 'Software Engineer',
-        location: { name: 'New York, NY' },
-        absolute_url: 'https://boards.greenhouse.io/acme/jobs/123',
-        departments: [{ name: 'Engineering' }],
-      });
-      const rawJob = fakeRawJob('greenhouse', raw);
-      rawJob.company = 'Acme Corp';
+      const rawJob = fakeGreenhouseRawJob(
+        {
+          id: 123,
+          title: 'Software Engineer',
+          location: { name: 'New York, NY' },
+          absolute_url: 'https://boards.greenhouse.io/acme/jobs/123',
+          departments: [{ name: 'Engineering' }],
+        },
+        'Acme Corp',
+      );
 
       const [result] = normalize([rawJob]);
 
@@ -36,8 +37,9 @@ describe('normalize', () => {
     });
 
     it('sets remote: true when location contains "remote" (case-insensitive)', () => {
-      const raw = fakeGreenhouseRaw({ location: { name: 'Remote - USA' } });
-      const rawJob = fakeRawJob('greenhouse', raw);
+      const rawJob = fakeGreenhouseRawJob({
+        location: { name: 'Remote - USA' },
+      });
 
       const [result] = normalize([rawJob]);
 
@@ -45,10 +47,9 @@ describe('normalize', () => {
     });
 
     it('strips HTML tags from the description', () => {
-      const raw = fakeGreenhouseRaw({
+      const rawJob = fakeGreenhouseRawJob({
         description: '<p>We are <strong>hiring</strong> engineers.</p>',
       });
-      const rawJob = fakeRawJob('greenhouse', raw);
 
       const [result] = normalize([rawJob]);
 
@@ -56,8 +57,9 @@ describe('normalize', () => {
     });
 
     it('captures postedAt from updated_at when present', () => {
-      const raw = fakeGreenhouseRaw({ updated_at: '2024-01-15T00:00:00Z' });
-      const rawJob = fakeRawJob('greenhouse', raw);
+      const rawJob = fakeGreenhouseRawJob({
+        updated_at: '2024-01-15T00:00:00Z',
+      });
 
       const [result] = normalize([rawJob]);
 
@@ -67,14 +69,15 @@ describe('normalize', () => {
 
   describe('lever jobs', () => {
     it('maps id, title, location, url, and department', () => {
-      const raw = fakeLeverRaw({
-        id: 'abc-def-123',
-        text: 'Senior Software Engineer',
-        hostedUrl: 'https://jobs.lever.co/acme/abc-def-123',
-        categories: { location: 'Remote', team: 'Backend Engineering' },
-      });
-      const rawJob = fakeRawJob('lever', raw);
-      rawJob.company = 'Acme Corp';
+      const rawJob = fakeLeverRawJob(
+        {
+          id: 'abc-def-123',
+          text: 'Senior Software Engineer',
+          hostedUrl: 'https://jobs.lever.co/acme/abc-def-123',
+          categories: { location: 'Remote', team: 'Backend Engineering' },
+        },
+        'Acme Corp',
+      );
 
       const [result] = normalize([rawJob]);
 
@@ -90,8 +93,7 @@ describe('normalize', () => {
     });
 
     it('converts createdAt epoch timestamp to ISO string', () => {
-      const raw = fakeLeverRaw({ createdAt: 1705276800000 });
-      const rawJob = fakeRawJob('lever', raw);
+      const rawJob = fakeLeverRawJob({ createdAt: 1705276800000 });
 
       const [result] = normalize([rawJob]);
 
@@ -101,14 +103,15 @@ describe('normalize', () => {
 
   describe('ashby jobs', () => {
     it('maps id, title, location, and url', () => {
-      const raw = fakeAshbyRaw({
-        id: 'ashby-123',
-        title: 'Platform Engineer',
-        locationName: 'Remote',
-        jobUrl: 'https://jobs.ashbyhq.com/acme/ashby-123',
-      });
-      const rawJob = fakeRawJob('ashby', raw);
-      rawJob.company = 'Acme Corp';
+      const rawJob = fakeAshbyRawJob(
+        {
+          id: 'ashby-123',
+          title: 'Platform Engineer',
+          locationName: 'Remote',
+          jobUrl: 'https://jobs.ashbyhq.com/acme/ashby-123',
+        },
+        'Acme Corp',
+      );
 
       const [result] = normalize([rawJob]);
 
@@ -121,8 +124,39 @@ describe('normalize', () => {
     });
 
     it('sets remote: true when workplaceType is "Remote"', () => {
-      const raw = fakeAshbyRaw({ workplaceType: 'Remote' });
-      const rawJob = fakeRawJob('ashby', raw);
+      const rawJob = fakeAshbyRawJob({ workplaceType: 'Remote' });
+
+      const [result] = normalize([rawJob]);
+
+      expect(result?.remote).toBe(true);
+    });
+  });
+
+  describe('workday jobs', () => {
+    it('maps title and constructs url from __baseUrl and externalPath', () => {
+      const rawJob = fakeWorkdayRawJob(
+        {
+          title: 'Software Engineer',
+          externalPath: '/en-US/jobs/req123_abc',
+          jobReqId: 'req123',
+          locationsText: 'Remote',
+          __baseUrl: 'https://acme.wd5.myworkdayjobs.com',
+        },
+        'Acme Corp',
+      );
+
+      const [result] = normalize([rawJob]);
+
+      expect(result).toMatchObject({
+        title: 'Software Engineer',
+        company: 'Acme Corp',
+        url: 'https://acme.wd5.myworkdayjobs.com/en-US/jobs/req123_abc',
+        ats: 'workday',
+      });
+    });
+
+    it('sets remote: true when locationsText contains "remote"', () => {
+      const rawJob = fakeWorkdayRawJob({ locationsText: 'Remote, USA' });
 
       const [result] = normalize([rawJob]);
 
@@ -140,8 +174,7 @@ describe('normalize', () => {
     });
 
     it('drops jobs with no URL', () => {
-      const raw = fakeGreenhouseRaw({ absolute_url: '' });
-      const rawJob = fakeRawJob('greenhouse', raw);
+      const rawJob = fakeGreenhouseRawJob({ absolute_url: '' });
 
       const result = normalize([rawJob]);
 
@@ -153,17 +186,16 @@ describe('normalize', () => {
 
   describe('error states', () => {
     it('skips a malformed job without aborting the rest of the batch', () => {
-      const malformedJob = fakeRawJob('greenhouse', {
-        /* missing required fields */
-      });
-      const validRaw = fakeGreenhouseRaw({
-        id: '99',
-        title: 'Software Engineer',
-        location: { name: 'Remote' },
-        absolute_url: 'https://example.com/job',
-      });
-      const validJob = fakeRawJob('greenhouse', validRaw);
-      validJob.company = 'Acme Corp';
+      const malformedJob = fakeGreenhouseRawJob({ absolute_url: undefined });
+      const validJob = fakeGreenhouseRawJob(
+        {
+          id: '99',
+          title: 'Software Engineer',
+          location: { name: 'Remote' },
+          absolute_url: 'https://example.com/job',
+        },
+        'Acme Corp',
+      );
 
       const result = normalize([malformedJob, validJob]);
 
