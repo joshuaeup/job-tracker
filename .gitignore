@@ -2,5 +2,4 @@ node_modules/
 dist/
 .env
 *.env.local
-src/config/companies/
-src/config/roles.json
+src/config/companies/*.local.json
