@@ -1,1 +1,23 @@
-[]
+[
+  { "name": "Cribl", "ats": "greenhouse", "slug": "cribl", "enabled": true },
+  {
+    "name": "Datadog",
+    "ats": "greenhouse",
+    "slug": "datadog",
+    "enabled": true
+  },
+  {
+    "name": "New Relic",
+    "ats": "greenhouse",
+    "slug": "newrelic",
+    "enabled": true
+  },
+  { "name": "Notion", "ats": "ashby", "slug": "notion", "enabled": true },
+  {
+    "name": "Postman",
+    "ats": "greenhouse",
+    "slug": "postman",
+    "enabled": true
+  },
+  { "name": "Vercel", "ats": "greenhouse", "slug": "vercel", "enabled": true }
+]
