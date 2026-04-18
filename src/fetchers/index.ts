@@ -3,11 +3,13 @@ import { createLogger } from '../lib/logger.js';
 import fetchGreenhouse from './greenhouse.js';
 import fetchLever from './lever.js';
 import fetchAshby from './ashby.js';
+import fetchWorkday from './workday.js';
 
 const FETCHERS = {
   greenhouse: fetchGreenhouse,
   lever: fetchLever,
   ashby: fetchAshby,
+  workday: fetchWorkday,
 } as const;
 
 /**

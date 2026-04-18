@@ -3,7 +3,7 @@ export type CompanyConfig = {
   /** Display name shown in logs and Notion rows. */
   name: string;
   /** ATS platform this company uses. */
-  ats: 'greenhouse' | 'lever' | 'ashby';
+  ats: 'greenhouse' | 'lever' | 'ashby' | 'workday';
   /** ATS board slug used to construct the API URL. */
   slug: string;
   /** Set to false to pause fetching without removing the entry. */
@@ -13,7 +13,7 @@ export type CompanyConfig = {
 /** Raw job posting as returned by an ATS fetcher, before normalization. */
 export type RawJob = {
   /** Which ATS platform produced this record. */
-  source: 'greenhouse' | 'lever' | 'ashby';
+  source: 'greenhouse' | 'lever' | 'ashby' | 'workday';
   /** Display name of the company this job belongs to. */
   company: string;
   /** Untouched response object from the ATS API. */
@@ -33,7 +33,7 @@ export type NormalizedJob = {
   /** Direct link to the job posting. */
   url: string;
   department: string;
-  ats: 'greenhouse' | 'lever' | 'ashby';
+  ats: 'greenhouse' | 'lever' | 'ashby' | 'workday';
   /** ISO 8601 date string if available, otherwise null. */
   postedAt: string | null;
   /** Minimum salary in USD if listed, otherwise null. */

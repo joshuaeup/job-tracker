@@ -5,5 +5,17 @@
     "slug": "seatgeek",
     "enabled": true
   },
-  { "name": "Clear", "ats": "greenhouse", "slug": "clear", "enabled": true }
+  { "name": "Clear", "ats": "greenhouse", "slug": "clear", "enabled": true },
+  {
+    "name": "Trip Advisor",
+    "ats": "greenhouse",
+    "slug": "tripadvisor",
+    "enabled": true
+  },
+  {
+    "name": "Expedia",
+    "ats": "workday",
+    "slug": "expedia.wd108/expedia/search",
+    "enabled": true
+  }
 ]

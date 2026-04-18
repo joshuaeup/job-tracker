@@ -203,10 +203,42 @@ function normalizeAshby(job: RawJob): NormalizedJob {
   };
 }
 
+function normalizeWorkday(job: RawJob): NormalizedJob {
+  const r = job.raw;
+
+  const baseUrl = typeof r['__baseUrl'] === 'string' ? r['__baseUrl'] : '';
+  const externalPath = toStr(r['externalPath']);
+  const url = externalPath ? `${baseUrl}${externalPath}` : '';
+
+  // jobReqId is the stable identifier; fall back to extracting from externalPath
+  const idRaw = toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
+    externalPath.split('_').pop() ||
+    externalPath;
+
+  const title = toStr(r['title']);
+  const location = toStr(r['locationsText']);
+
+  return {
+    id: `workday:${slugify(job.company)}:${idRaw}`,
+    title,
+    company: job.company,
+    location,
+    remote: isRemote(location),
+    url,
+    department: '',
+    ats: 'workday',
+    postedAt: null,
+    salaryMin: null,
+    salaryMax: null,
+    descriptionText: '',
+  };
+}
+
 const NORMALIZERS = {
   greenhouse: normalizeGreenhouse,
   lever: normalizeLever,
   ashby: normalizeAshby,
+  workday: normalizeWorkday,
 } as const;
 
 /**
