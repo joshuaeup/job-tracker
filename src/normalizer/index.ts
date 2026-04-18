@@ -1,21 +1,20 @@
-import type { RawJob, NormalizedJob } from '../types/index.js';
 import { createLogger } from '../lib/logger.js';
+import type { NormalizedJob, RawJob } from '../types/index.js';
 
 /** Returns true if `value` is a non-null, non-array plain object. */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /** Safely converts an unknown value to a string, returning "" for objects/null/undefined. */
-function toStr(value: unknown): string {
+const toStr = (value: unknown): string => {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean')
     return String(value);
   return '';
-}
+};
 
-function stripHtml(html: string): string {
-  return html
+const stripHtml = (html: string): string =>
+  html
     .replace(/<[^>]+>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -25,26 +24,20 @@ function stripHtml(html: string): string {
     .replace(/&nbsp;/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
-}
 
-function slugify(str: string): string {
-  return str.toLowerCase().replace(/\s+/g, '-');
-}
+const slugify = (str: string): string => str.toLowerCase().replace(/\s+/g, '-');
 
-function isRemote(location: string): boolean {
-  return /remote/i.test(location);
-}
+const isRemote = (location: string): boolean => /remote/i.test(location);
 
-function parseLocation(raw: unknown): string {
+const parseLocation = (raw: unknown): string => {
   if (typeof raw === 'string') return raw;
   if (isRecord(raw) && typeof raw['name'] === 'string') return raw['name'];
   return '';
-}
+};
 
-function parseSalary(compensation: unknown): {
-  min: number | null;
-  max: number | null;
-} {
+const parseSalary = (
+  compensation: unknown,
+): { min: number | null; max: number | null } => {
   if (!isRecord(compensation)) return { min: null, max: null };
 
   const rawMin = compensation['min_value'] ?? compensation['minValue'];
@@ -54,12 +47,11 @@ function parseSalary(compensation: unknown): {
     min: typeof rawMin === 'number' ? rawMin : null,
     max: typeof rawMax === 'number' ? rawMax : null,
   };
-}
+};
 
-function parseGreenhouseSalary(metadata: unknown): {
-  min: number | null;
-  max: number | null;
-} {
+const parseGreenhouseSalary = (
+  metadata: unknown,
+): { min: number | null; max: number | null } => {
   if (!Array.isArray(metadata)) return { min: null, max: null };
 
   const entry = metadata.find(
@@ -82,9 +74,9 @@ function parseGreenhouseSalary(metadata: unknown): {
     min: min !== null && !isNaN(min) ? min : null,
     max: max !== null && !isNaN(max) ? max : null,
   };
-}
+};
 
-function normalizeGreenhouse(job: RawJob): NormalizedJob {
+const normalizeGreenhouse = (job: RawJob): NormalizedJob => {
   const r = job.raw;
 
   const idRaw = toStr(r['id']);
@@ -130,9 +122,9 @@ function normalizeGreenhouse(job: RawJob): NormalizedJob {
     salaryMax: max,
     descriptionText: stripHtml(descriptionHtml),
   };
-}
+};
 
-function normalizeLever(job: RawJob): NormalizedJob {
+const normalizeLever = (job: RawJob): NormalizedJob => {
   const r = job.raw;
 
   const idRaw = toStr(r['id']);
@@ -166,9 +158,9 @@ function normalizeLever(job: RawJob): NormalizedJob {
     salaryMax: max,
     descriptionText,
   };
-}
+};
 
-function normalizeAshby(job: RawJob): NormalizedJob {
+const normalizeAshby = (job: RawJob): NormalizedJob => {
   const r = job.raw;
 
   const idRaw = toStr(r['id']);
@@ -201,9 +193,9 @@ function normalizeAshby(job: RawJob): NormalizedJob {
     salaryMax: max,
     descriptionText: stripHtml(descriptionHtml),
   };
-}
+};
 
-function normalizeWorkday(job: RawJob): NormalizedJob {
+const normalizeWorkday = (job: RawJob): NormalizedJob => {
   const r = job.raw;
 
   const baseUrl = typeof r['__baseUrl'] === 'string' ? r['__baseUrl'] : '';
@@ -211,7 +203,8 @@ function normalizeWorkday(job: RawJob): NormalizedJob {
   const url = externalPath ? `${baseUrl}${externalPath}` : '';
 
   // jobReqId is the stable identifier; fall back to extracting from externalPath
-  const idRaw = toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
+  const idRaw =
+    toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
     externalPath.split('_').pop() ||
     externalPath;
 
@@ -232,7 +225,7 @@ function normalizeWorkday(job: RawJob): NormalizedJob {
     salaryMax: null,
     descriptionText: '',
   };
-}
+};
 
 const NORMALIZERS = {
   greenhouse: normalizeGreenhouse,
@@ -246,7 +239,7 @@ const NORMALIZERS = {
  * Jobs with no URL are dropped. Normalization errors for individual jobs are
  * logged and skipped without aborting the batch.
  */
-export function normalize(rawJobs: RawJob[]): NormalizedJob[] {
+export const normalize = (rawJobs: RawJob[]): NormalizedJob[] => {
   const log = createLogger('NORMALIZE');
   const results: NormalizedJob[] = [];
 
@@ -266,4 +259,4 @@ export function normalize(rawJobs: RawJob[]): NormalizedJob[] {
   }
 
   return results;
-}
+};

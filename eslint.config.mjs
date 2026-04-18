@@ -28,15 +28,46 @@ export default defineConfig(
       'unused-imports': eslintPluginUnusedImports,
     },
     rules: {
+      // Import hygiene
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
+
+      // Type safety
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': 'off', // replaced by unused-imports plugin
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports' },
+      ],
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      // Code quality
+      eqeqeq: ['error', 'always'],
+
+      // Intentionally off for this CLI app — console is used for structured logging
+      'no-console': 'off',
+
+      // Off: unnecessary constraint for an infrastructure-boundary codebase
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'off',
-      '@typescript-eslint/unbound-method': 'off',
-      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
-      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-redundant-type-constituents': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'no-unused-expressions': 'off',
+
+      // Off: API response boundaries require type assertions (response.json() returns any)
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -44,15 +75,8 @@ export default defineConfig(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       'no-unsafe-optional-chaining': 'off',
-      'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
-      'simple-import-sort/imports': 'off',
-      'simple-import-sort/exports': 'off',
-      'unused-imports/no-unused-imports': 'off',
-      'unused-imports/no-unused-vars': 'off',
+
       curly: 'off',
-      eqeqeq: 'off',
-      'no-console': 'off',
     },
   },
 );

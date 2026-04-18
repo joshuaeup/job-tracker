@@ -1,9 +1,12 @@
+/** The ATS platforms supported by the pipeline. */
+export type AtsSource = 'ashby' | 'greenhouse' | 'lever' | 'workday';
+
 /** Configuration entry for a single target company. */
 export type CompanyConfig = {
   /** Display name shown in logs and Notion rows. */
   name: string;
   /** ATS platform this company uses. */
-  ats: 'greenhouse' | 'lever' | 'ashby' | 'workday';
+  ats: AtsSource;
   /** ATS board slug used to construct the API URL. */
   slug: string;
   /** Set to false to pause fetching without removing the entry. */
@@ -13,7 +16,7 @@ export type CompanyConfig = {
 /** Raw job posting as returned by an ATS fetcher, before normalization. */
 export type RawJob = {
   /** Which ATS platform produced this record. */
-  source: 'greenhouse' | 'lever' | 'ashby' | 'workday';
+  source: AtsSource;
   /** Display name of the company this job belongs to. */
   company: string;
   /** Untouched response object from the ATS API. */
@@ -33,7 +36,7 @@ export type NormalizedJob = {
   /** Direct link to the job posting. */
   url: string;
   department: string;
-  ats: 'greenhouse' | 'lever' | 'ashby' | 'workday';
+  ats: AtsSource;
   /** ISO 8601 date string if available, otherwise null. */
   postedAt: string | null;
   /** Minimum salary in USD if listed, otherwise null. */
@@ -44,30 +47,9 @@ export type NormalizedJob = {
   descriptionText: string;
 };
 
-/** Structured evaluation result returned by the Claude evaluator. */
-export type EvaluationResult = {
-  /** Fit score from 0–100 against the Target Role Profile. */
-  fitScore: number;
-  /** Recommended action based on the fit score and flag criteria. */
-  recommendation: 'apply' | 'research' | 'skip';
-  /** 2–3 sentence plain-language assessment of the role. */
-  summary: string;
-  /** Array of specific red/amber/green flags triggered during evaluation. */
-  flags: string[];
-};
-
-/** A normalized job paired with its Claude evaluation result. */
-export type ScoredJob = {
-  job: NormalizedJob;
-  evaluation: EvaluationResult;
-};
-
 /** Counts logged at the end of each pipeline run. */
 export type RunSummary = {
   fetched: number;
   filtered: number;
   deduplicated: number;
-  evaluated: number;
-  logged: number;
-  skipped: number;
 };
