@@ -7,7 +7,7 @@ import { deduplicate } from './dedup/notion.js';
 import { fetchAll } from './fetchers/index.js';
 import { filter } from './filter/index.js';
 import { createLogger } from './lib/logger.js';
-import { logRawJobsToNotion as logJobsToNotion } from './logger/notion.js';
+import { logJobsToNotion } from './logger/notion.js';
 import { normalize } from './normalizer/index.js';
 import { sendReviewDigest } from './notify/slack.js';
 import type { RunSummary } from './types/index.js';

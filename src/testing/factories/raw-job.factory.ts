@@ -10,16 +10,14 @@ import type { RawJob } from '../../types/index.js';
  * @example
  * const job = fakeRawJob('greenhouse', { title: 'Backend Engineer' });
  */
-export function fakeRawJob(
+export const fakeRawJob = (
   source: RawJob['source'],
   raw: Record<string, unknown> = {},
-): RawJob {
-  return {
-    source,
-    company: faker.company.name(),
-    raw,
-  };
-}
+): RawJob => ({
+  source,
+  company: faker.company.name(),
+  raw,
+});
 
 /**
  * Builds a valid raw Greenhouse job payload with randomised field values.
@@ -27,19 +25,17 @@ export function fakeRawJob(
  * @example
  * const job = fakeGreenhouseRaw({ title: 'Backend Engineer' });
  */
-export function fakeGreenhouseRaw(
+export const fakeGreenhouseRaw = (
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
-  return {
-    id: faker.number.int({ min: 1000, max: 999999 }),
-    title: 'Software Engineer',
-    location: { name: faker.location.city() },
-    absolute_url: faker.internet.url(),
-    departments: [{ name: faker.commerce.department() }],
-    updated_at: faker.date.recent().toISOString(),
-    ...overrides,
-  };
-}
+): Record<string, unknown> => ({
+  id: faker.number.int({ min: 1000, max: 999999 }),
+  title: 'Software Engineer',
+  location: { name: faker.location.city() },
+  absolute_url: faker.internet.url(),
+  departments: [{ name: faker.commerce.department() }],
+  updated_at: faker.date.recent().toISOString(),
+  ...overrides,
+});
 
 /**
  * Builds a valid raw Lever job payload with randomised field values.
@@ -47,21 +43,19 @@ export function fakeGreenhouseRaw(
  * @example
  * const job = fakeLeverRaw({ text: 'Senior Engineer' });
  */
-export function fakeLeverRaw(
+export const fakeLeverRaw = (
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
-  return {
-    id: faker.string.uuid(),
-    text: 'Software Engineer',
-    hostedUrl: faker.internet.url(),
-    categories: {
-      location: faker.location.city(),
-      team: faker.commerce.department(),
-    },
-    createdAt: faker.date.recent().getTime(),
-    ...overrides,
-  };
-}
+): Record<string, unknown> => ({
+  id: faker.string.uuid(),
+  text: 'Software Engineer',
+  hostedUrl: faker.internet.url(),
+  categories: {
+    location: faker.location.city(),
+    team: faker.commerce.department(),
+  },
+  createdAt: faker.date.recent().getTime(),
+  ...overrides,
+});
 
 /**
  * Builds a valid raw Ashby job payload with randomised field values.
@@ -69,15 +63,13 @@ export function fakeLeverRaw(
  * @example
  * const job = fakeAshbyRaw({ title: 'Platform Engineer' });
  */
-export function fakeAshbyRaw(
+export const fakeAshbyRaw = (
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> {
-  return {
-    id: faker.string.uuid(),
-    title: 'Software Engineer',
-    locationName: faker.location.city(),
-    jobUrl: faker.internet.url(),
-    workplaceType: 'OnSite',
-    ...overrides,
-  };
-}
+): Record<string, unknown> => ({
+  id: faker.string.uuid(),
+  title: 'Software Engineer',
+  locationName: faker.location.city(),
+  jobUrl: faker.internet.url(),
+  workplaceType: 'OnSite',
+  ...overrides,
+});

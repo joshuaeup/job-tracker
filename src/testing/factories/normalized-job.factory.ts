@@ -9,9 +9,9 @@ import type { NormalizedJob } from '../../types/index.js';
  * @example
  * const job = fakeNormalizedJob({ title: 'Software Engineer', remote: true });
  */
-export function fakeNormalizedJob(
+export const fakeNormalizedJob = (
   overrides: Partial<NormalizedJob> = {},
-): NormalizedJob {
+): NormalizedJob => {
   const id = faker.string.uuid();
   const company = faker.company.name();
   const companySlug = company.toLowerCase().replace(/\s+/g, '-');
@@ -31,4 +31,4 @@ export function fakeNormalizedJob(
     descriptionText: faker.lorem.paragraph(),
     ...overrides,
   };
-}
+};

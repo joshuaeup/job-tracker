@@ -3,7 +3,7 @@ import type { RunSummary } from '../types/index.js';
 /**
  * Prints a formatted pipeline run summary table to stdout.
  */
-export function printSummary(summary: RunSummary): void {
+export const printSummary = (summary: RunSummary): void => {
   console.log('');
   console.log('  ┌─────────────────────────────────────┐');
   console.log('  │         Pipeline Run Summary         │');
@@ -18,4 +18,4 @@ export function printSummary(summary: RunSummary): void {
   );
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-}
+};

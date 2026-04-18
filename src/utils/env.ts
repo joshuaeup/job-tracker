@@ -5,8 +5,8 @@
  * @returns The variable's string value
  * @throws {Error} If the variable is not set or is an empty string
  */
-export function requireEnv(name: string): string {
+export const requireEnv = (name: string): string => {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;
-}
+};

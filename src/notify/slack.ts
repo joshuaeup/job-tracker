@@ -1,14 +1,14 @@
 import type { NormalizedJob } from '../types/index.js';
 
-function formatSalary(min: number | null, max: number | null): string {
+const formatSalary = (min: number | null, max: number | null): string => {
   if (min !== null && max !== null) {
     return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
   }
   if (min !== null) return `$${min.toLocaleString()}+`;
   return 'Not listed';
-}
+};
 
-function buildReviewDigest(date: string, jobs: NormalizedJob[]): string {
+const buildReviewDigest = (date: string, jobs: NormalizedJob[]): string => {
   if (jobs.length === 0) {
     return `*Job Search Run — ${date}*\nNo new roles found after filtering and deduplication.`;
   }
@@ -31,18 +31,18 @@ function buildReviewDigest(date: string, jobs: NormalizedJob[]): string {
   }
 
   return lines.join('\n').trim();
-}
+};
 
 /**
  * Posts a digest of all new filtered and deduped roles to Slack for manual review.
  *
  * @throws {Error} If the webhook POST returns a non-OK status.
  */
-export async function sendReviewDigest(
+export const sendReviewDigest = async (
   webhookUrl: string,
   date: string,
   jobs: NormalizedJob[],
-): Promise<void> {
+): Promise<void> => {
   const text = buildReviewDigest(date, jobs);
 
   const response = await fetch(webhookUrl, {
@@ -56,4 +56,4 @@ export async function sendReviewDigest(
       `Slack webhook failed: ${response.status} ${response.statusText}`,
     );
   }
-}
+};

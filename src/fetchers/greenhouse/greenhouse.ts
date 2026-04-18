@@ -1,8 +1,5 @@
-import type { CompanyConfig, RawJob } from '../types/index.js';
-
-type GreenhouseResponse = {
-  jobs: Record<string, unknown>[];
-};
+import type { CompanyConfig, RawJob } from '../../types/index.js';
+import type { GreenhouseJob, GreenhouseResponse } from './types.js';
 
 /**
  * Fetches all job postings for a company from the Greenhouse ATS public API.
@@ -10,9 +7,9 @@ type GreenhouseResponse = {
  *
  * @throws {Error} If the HTTP response is not OK.
  */
-export default async function fetchGreenhouse(
+export const fetchGreenhouse = async (
   config: CompanyConfig,
-): Promise<RawJob[]> {
+): Promise<RawJob[]> => {
   const url = `https://boards-api.greenhouse.io/v1/boards/${config.slug}/jobs?content=true`;
 
   const response = await fetch(url);
@@ -24,11 +21,13 @@ export default async function fetchGreenhouse(
   }
 
   const data = (await response.json()) as GreenhouseResponse;
-  const jobs = data.jobs ?? [];
+  const jobs: GreenhouseJob[] = data.jobs ?? [];
 
   return jobs.map((item) => ({
     source: 'greenhouse' as const,
     company: config.name,
-    raw: item,
+    raw: item as unknown as Record<string, unknown>,
   }));
-}
+};
+
+export default fetchGreenhouse;

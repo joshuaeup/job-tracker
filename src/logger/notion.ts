@@ -5,16 +5,15 @@ import type { NormalizedJob } from '../types/index.js';
 
 const NOTION_RATE_DELAY_MS = 400;
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Maps a raw ATS location string to the closest canonical Notion select option.
  * Falls back to the raw string so Notion creates a new option rather than
  * losing the data entirely.
  */
-function normalizeLocationLabel(location: string, remote: boolean): string {
+const normalizeLocationLabel = (location: string, remote: boolean): string => {
   if (remote) return 'Remote';
 
   const lower = location.toLowerCase();
@@ -33,29 +32,27 @@ function normalizeLocationLabel(location: string, remote: boolean): string {
   // Notion select options don't allow commas — use only the first segment
   // (e.g. "San Francisco, California" → "San Francisco")
   return location.split(',')[0]?.trim() ?? location;
-}
+};
 
-function formatSalary(min: number | null, max: number | null): string {
+const formatSalary = (min: number | null, max: number | null): string => {
   if (min !== null && max !== null) {
     return `$${min.toLocaleString()}–$${max.toLocaleString()}`;
   }
   if (min !== null) return `$${min.toLocaleString()}+`;
   return 'Not listed';
-}
+};
 
 /**
- * Logs a batch of new jobs to Notion. The dedup stage reads Job Posting URL,
- * so any row written here will be skipped on the next pipeline run.
+ * Writes a batch of new jobs to Notion with status set to "Researching".
+ * A 400ms delay between writes keeps requests within Notion's rate limit.
  *
- * Status is set to "Researching" so they appear in the tracker for manual review.
- *
- * @returns The number of rows successfully written to Notion.
+ * @returns The number of rows successfully written.
  */
-export async function logRawJobsToNotion(
+export const logJobsToNotion = async (
   notion: Client,
   databaseId: string,
   jobs: NormalizedJob[],
-): Promise<number> {
+): Promise<number> => {
   const log = createLogger('LOG');
   let logged = 0;
 
@@ -99,4 +96,4 @@ export async function logRawJobsToNotion(
   }
 
   return logged;
-}
+};
