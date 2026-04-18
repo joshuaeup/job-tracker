@@ -20,6 +20,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": false,
+    "rootDir": "src",
     "outDir": "dist",
     "types": ["jest", "node"]
   },
