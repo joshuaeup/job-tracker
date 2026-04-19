@@ -48,14 +48,14 @@ This file defines how Claude must write, structure, and test TypeScript code. Th
 
 ### Why each strict flag matters
 
-| Flag | Effect |
-|---|---|
-| `strict` | Enables `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, and more |
-| `noUncheckedIndexedAccess` | Array/object index access returns `T \| undefined`, not `T` |
-| `exactOptionalPropertyTypes` | `{ foo?: string }` means absent or string, never explicitly `undefined` |
-| `noImplicitOverride` | Subclass overrides must use the `override` keyword |
-| `isolatedModules` | Each file must be independently transpilable (required for esbuild/swc) |
-| `noUnusedLocals` / `noUnusedParameters` | Dead code is a compile error |
+| Flag                                    | Effect                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| `strict`                                | Enables `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, and more |
+| `noUncheckedIndexedAccess`              | Array/object index access returns `T \| undefined`, not `T`                  |
+| `exactOptionalPropertyTypes`            | `{ foo?: string }` means absent or string, never explicitly `undefined`      |
+| `noImplicitOverride`                    | Subclass overrides must use the `override` keyword                           |
+| `isolatedModules`                       | Each file must be independently transpilable (required for esbuild/swc)      |
+| `noUnusedLocals` / `noUnusedParameters` | Dead code is a compile error                                                 |
 
 ---
 
@@ -65,13 +65,13 @@ This file defines how Claude must write, structure, and test TypeScript code. Th
 
 `any` disables the type checker. It is never acceptable.
 
-| Instead of | Use |
-|---|---|
-| `any` | `unknown` for truly unknown input |
-| `any[]` | `unknown[]` or a typed array |
-| `object` | `Record<string, unknown>` |
-| `Function` | An explicit function signature |
-| `{}` | `Record<string, unknown>` or a named type |
+| Instead of | Use                                       |
+| ---------- | ----------------------------------------- |
+| `any`      | `unknown` for truly unknown input         |
+| `any[]`    | `unknown[]` or a typed array              |
+| `object`   | `Record<string, unknown>`                 |
+| `Function` | An explicit function signature            |
+| `{}`       | `Record<string, unknown>` or a named type |
 
 ### Explicit return types on all exported functions
 
@@ -191,6 +191,7 @@ import type { NormalizedJob } from '../types/index.js';
 ### Import ordering
 
 Use `simple-import-sort` or follow this order manually:
+
 1. Node built-ins
 2. Third-party packages
 3. Internal absolute imports
@@ -200,15 +201,15 @@ Separate each group with a blank line. Type-only imports use `import type`.
 
 ### Naming conventions
 
-| Construct | Convention | Example |
-|---|---|---|
-| Variables / functions | `camelCase` | `getUserById` |
-| Types / interfaces | `PascalCase` | `UserRepository` |
-| Enums | Avoid — use discriminated unions | — |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_COUNT` |
-| Generic params | Descriptive | `TEntity`, `TResult` |
-| Files | `kebab-case` | `user-repository.ts` |
-| Spec files | `<module>.spec.ts` | `user-repository.spec.ts` |
+| Construct             | Convention                       | Example                   |
+| --------------------- | -------------------------------- | ------------------------- |
+| Variables / functions | `camelCase`                      | `getUserById`             |
+| Types / interfaces    | `PascalCase`                     | `UserRepository`          |
+| Enums                 | Avoid — use discriminated unions | —                         |
+| Constants             | `SCREAMING_SNAKE_CASE`           | `MAX_RETRY_COUNT`         |
+| Generic params        | Descriptive                      | `TEntity`, `TResult`      |
+| Files                 | `kebab-case`                     | `user-repository.ts`      |
+| Spec files            | `<module>.spec.ts`               | `user-repository.spec.ts` |
 
 Single-letter generics (`T`, `K`, `V`) are acceptable only for truly generic utility types.
 
@@ -336,7 +337,10 @@ class AppError extends Error {
 
 class NotFoundError extends AppError {
   constructor(resource: string, id: string) {
-    super(`${resource} with id "${id}" not found`, 'NOT_FOUND', { resource, id });
+    super(`${resource} with id "${id}" not found`, 'NOT_FOUND', {
+      resource,
+      id,
+    });
   }
 }
 ```
@@ -590,17 +594,18 @@ export const mockSlackFetch = (
 import { jest } from '@jest/globals';
 import type { Client } from '@notionhq/client';
 
-export const makeMockNotion = (urls: string[]): Client => ({
-  databases: {
-    query: jest.fn().mockResolvedValue({
-      results: urls.map((url) => ({
-        properties: { 'Job Posting URL': { type: 'url', url } },
-      })),
-      has_more: false,
-      next_cursor: null,
-    } as never),
-  },
-} as unknown as Client);
+export const makeMockNotion = (urls: string[]): Client =>
+  ({
+    databases: {
+      query: jest.fn().mockResolvedValue({
+        results: urls.map((url) => ({
+          properties: { 'Job Posting URL': { type: 'url', url } },
+        })),
+        has_more: false,
+        next_cursor: null,
+      } as never),
+    },
+  }) as unknown as Client;
 ```
 
 ### Assertion style
@@ -660,16 +665,17 @@ Always run `lint:fix` after writing new files before considering a task done.
 - One logical change per commit.
 - Conventional commit format: `<type>(<scope>): <short description>`
 
-| Type | When to use |
-|---|---|
-| `feat` | New feature or capability |
-| `fix` | Bug fix |
-| `test` | Adding or updating tests |
+| Type       | When to use                                 |
+| ---------- | ------------------------------------------- |
+| `feat`     | New feature or capability                   |
+| `fix`      | Bug fix                                     |
+| `test`     | Adding or updating tests                    |
 | `refactor` | Code restructuring with no behaviour change |
-| `chore` | Tooling, config, dependencies |
-| `docs` | Documentation only |
+| `chore`    | Tooling, config, dependencies               |
+| `docs`     | Documentation only                          |
 
 Examples:
+
 ```
 feat(auth): add JWT refresh token rotation
 fix(normalizer): handle null location in Lever response
