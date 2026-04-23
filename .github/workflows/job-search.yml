@@ -2,9 +2,9 @@ name: Job Search Automation
 
 on:
   schedule:
-    - cron: "0 13 * * *" # ~9:00 AM EDT / 8:00 AM EST
-    - cron: "0 18 * * *" # ~2:00 PM EDT / 1:00 PM EST
-    - cron: "0 23 * * *" # ~7:00 PM EDT / 6:00 PM EST
+    - cron: '0 9 * * *'
+    - cron: '0 14 * * *'
+    - cron: '0 19 * * *'
   workflow_dispatch: # Manual trigger for testing
 
 jobs:
@@ -16,8 +16,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
