@@ -17,5 +17,11 @@
     "ats": "workday",
     "slug": "expedia.wd108/expedia/search",
     "enabled": true
+  },
+  {
+    "name": "Airbnb",
+    "ats": "greenhouse",
+    "slug": "airbnb",
+    "enabled": true
   }
 ]
