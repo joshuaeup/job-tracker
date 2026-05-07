@@ -27,7 +27,7 @@
   {
     "name": "Zillow",
     "ats": "workday",
-    "slug": "zillow.wd5/Zillow_Group_External/search",
+    "slug": "zillow.wd5/zillow/Zillow_Group_External",
     "enabled": true
   }
 ]
