@@ -23,5 +23,11 @@
     "ats": "greenhouse",
     "slug": "airbnb",
     "enabled": true
+  },
+  {
+    "name": "Zillow",
+    "ats": "workday",
+    "slug": "zillow.wd5/Zillow_Group_External/search",
+    "enabled": true
   }
 ]
