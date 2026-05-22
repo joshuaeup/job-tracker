@@ -46,7 +46,7 @@ describe('normalize', () => {
       expect(result?.remote).toBe(true);
     });
 
-    it('strips HTML tags from the description', () => {
+    it('strips HTML tags from the description field', () => {
       const rawJob = fakeGreenhouseRawJob({
         description: '<p>We are <strong>hiring</strong> engineers.</p>',
       });
@@ -54,6 +54,16 @@ describe('normalize', () => {
       const [result] = normalize([rawJob]);
 
       expect(result?.descriptionText).toBe('We are hiring engineers.');
+    });
+
+    it('reads description from the content field when description is absent', () => {
+      const rawJob = fakeGreenhouseRawJob({
+        content: '<p>The salary range is $120,000 - $150,000.</p>',
+      });
+
+      const [result] = normalize([rawJob]);
+
+      expect(result?.descriptionText).toContain('$120,000 - $150,000');
     });
 
     it('captures postedAt from updated_at when present', () => {

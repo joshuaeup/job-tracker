@@ -102,9 +102,11 @@ const normalizeGreenhouse = (job: RawJob): NormalizedJob => {
   const descriptionHtml =
     typeof r['description'] === 'string'
       ? r['description']
-      : isRecord(content) && typeof content['description'] === 'string'
-        ? content['description']
-        : '';
+      : typeof content === 'string'
+        ? content
+        : isRecord(content) && typeof content['description'] === 'string'
+          ? content['description']
+          : '';
 
   const { min, max } = parseGreenhouseSalary(r['metadata']);
 
