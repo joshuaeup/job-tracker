@@ -15,7 +15,6 @@ const toStr = (value: unknown): string => {
 
 const stripHtml = (html: string): string =>
   html
-    .replace(/<[^>]+>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
@@ -24,6 +23,7 @@ const stripHtml = (html: string): string =>
     .replace(/&nbsp;/g, ' ')
     .replace(/&mdash;/g, '—')
     .replace(/&ndash;/g, '–')
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
 
@@ -44,6 +44,32 @@ const parseSalary = (
 
   const rawMin = compensation['min_value'] ?? compensation['minValue'];
   const rawMax = compensation['max_value'] ?? compensation['maxValue'];
+
+  return {
+    min: typeof rawMin === 'number' ? rawMin : null,
+    max: typeof rawMax === 'number' ? rawMax : null,
+  };
+};
+
+const parseAshbyCompensation = (
+  compensation: unknown,
+): { min: number | null; max: number | null } => {
+  if (!isRecord(compensation)) return { min: null, max: null };
+
+  const components = compensation['summaryComponents'];
+  if (!Array.isArray(components)) return { min: null, max: null };
+
+  const salaryComponent = components.find(
+    (c): c is Record<string, unknown> =>
+      isRecord(c) &&
+      c['compensationType'] === 'Salary' &&
+      c['interval'] === '1 YEAR',
+  );
+
+  if (!salaryComponent) return { min: null, max: null };
+
+  const rawMin = salaryComponent['minValue'];
+  const rawMax = salaryComponent['maxValue'];
 
   return {
     min: typeof rawMin === 'number' ? rawMin : null,
@@ -181,7 +207,7 @@ const normalizeAshby = (job: RawJob): NormalizedJob => {
         : null;
 
   const descriptionHtml = toStr(r['descriptionHtml'] ?? r['description']);
-  const { min, max } = parseSalary(r['compensation'] ?? r['salaryRange']);
+  const { min, max } = parseAshbyCompensation(r['compensation']);
 
   return {
     id: `ashby:${slugify(job.company)}:${idRaw}`,

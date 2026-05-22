@@ -7,7 +7,7 @@ import type { AshbyJob, AshbyResponse } from './types.js';
  * @throws {Error} If the HTTP response is not OK.
  */
 export const fetchAshby = async (config: CompanyConfig): Promise<RawJob[]> => {
-  const url = `https://api.ashbyhq.com/posting-api/job-board/${config.slug}`;
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${config.slug}?includeCompensation=true`;
 
   const response = await fetch(url);
 

@@ -140,6 +140,43 @@ describe('normalize', () => {
 
       expect(result?.remote).toBe(true);
     });
+
+    it('parses salary from the summaryComponents compensation field', () => {
+      const rawJob = fakeAshbyRawJob({
+        compensation: {
+          summaryComponents: [
+            {
+              compensationType: 'EquityPercentage',
+              interval: 'NONE',
+              currencyCode: null,
+              minValue: null,
+              maxValue: null,
+            },
+            {
+              compensationType: 'Salary',
+              interval: '1 YEAR',
+              currencyCode: 'USD',
+              minValue: 127_000,
+              maxValue: 207_000,
+            },
+          ],
+        },
+      });
+
+      const [result] = normalize([rawJob]);
+
+      expect(result?.salaryMin).toBe(127_000);
+      expect(result?.salaryMax).toBe(207_000);
+    });
+
+    it('returns null salary when compensation is absent', () => {
+      const rawJob = fakeAshbyRawJob({ compensation: null });
+
+      const [result] = normalize([rawJob]);
+
+      expect(result?.salaryMin).toBeNull();
+      expect(result?.salaryMax).toBeNull();
+    });
   });
 
   describe('workday jobs', () => {

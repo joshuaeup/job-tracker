@@ -64,7 +64,7 @@ describe('fetchAshby', () => {
       await fetchAshby(makeAshbyConfig({ slug: 'my-company' }));
 
       expect(spy).toHaveBeenCalledWith(
-        'https://api.ashbyhq.com/posting-api/job-board/my-company',
+        'https://api.ashbyhq.com/posting-api/job-board/my-company?includeCompensation=true',
       );
     });
   });
