@@ -70,6 +70,40 @@ describe('fetchWorkday', () => {
 
       expect(result).toHaveLength(21);
     });
+
+    it('continues paginating when subsequent pages return total: 0', async () => {
+      const firstPageJobs = Array.from({ length: 20 }, () => fakeWorkdayJob());
+      const secondPageJobs = Array.from({ length: 20 }, () => fakeWorkdayJob());
+      const thirdPageJobs = [fakeWorkdayJob()];
+
+      jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () =>
+            Promise.resolve({ jobPostings: firstPageJobs, total: 41 }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () =>
+            Promise.resolve({ jobPostings: secondPageJobs, total: 0 }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: () =>
+            Promise.resolve({ jobPostings: thirdPageJobs, total: 0 }),
+        } as Response);
+
+      const result = await fetchWorkday(makeWorkdayConfig());
+
+      expect(result).toHaveLength(41);
+    });
   });
 
   // ── Edge cases ─────────────────────────────────────────────────────────────

@@ -29,8 +29,9 @@ export const fetchWorkday = async (
 
   const allPostings: WorkdayJob[] = [];
   let offset = 0;
+  let total = Infinity;
 
-  while (true) {
+  while (allPostings.length < total) {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,11 +52,12 @@ export const fetchWorkday = async (
     const data = (await response.json()) as WorkdayResponse;
     const page: WorkdayJob[] = data.jobPostings ?? [];
 
+    // Workday only returns the correct total on the first page; capture it once.
+    if (offset === 0 && data.total > 0) total = data.total;
+
     allPostings.push(...page);
 
-    if (allPostings.length >= data.total || page.length < PAGE_SIZE) {
-      break;
-    }
+    if (page.length < PAGE_SIZE) break;
 
     offset += PAGE_SIZE;
   }
