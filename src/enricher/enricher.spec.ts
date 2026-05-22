@@ -5,6 +5,7 @@ import { enrich } from './enricher.js';
 import {
   mockWorkdayDetail,
   mockWorkdayDetailFailure,
+  mockWorkdayDetailNetworkError,
 } from './mocks/enricher.mocks.js';
 
 beforeEach(() => {
@@ -78,13 +79,11 @@ describe('enrich', () => {
     });
 
     it('calls the CXS endpoint derived from the job URL', async () => {
-      const spy = jest
-        .spyOn(globalThis, 'fetch')
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ jobPostingInfo: { jobDescription: '' } }),
-        } as Response);
+      const spy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ jobPostingInfo: { jobDescription: '' } }),
+      } as Response);
 
       const job = fakeNormalizedJob({
         ats: 'workday',
@@ -151,11 +150,30 @@ describe('enrich', () => {
       expect(result?.salaryMax).toBeNull();
     });
 
+    it('keeps the job unchanged when the Workday fetch throws a network error', async () => {
+      mockWorkdayDetailNetworkError();
+
+      const job = fakeNormalizedJob({
+        ats: 'workday',
+        descriptionText: '',
+        salaryMin: null,
+        salaryMax: null,
+      });
+
+      const [result] = await enrich([job]);
+
+      expect(result?.descriptionText).toBe('');
+      expect(result?.salaryMin).toBeNull();
+    });
+
     it('continues enriching remaining jobs after a single Workday fetch failure', async () => {
       mockWorkdayDetailFailure(503);
       mockWorkdayDetail('<p>Pay: $100,000 – $130,000</p>');
 
-      const failing = fakeNormalizedJob({ ats: 'workday', descriptionText: '' });
+      const failing = fakeNormalizedJob({
+        ats: 'workday',
+        descriptionText: '',
+      });
       const succeeding = fakeNormalizedJob({
         ats: 'workday',
         url: 'https://acme.wd5.myworkdayjobs.com/en-US/acme_jobs/job/Remote/Eng_1',

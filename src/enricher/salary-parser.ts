@@ -25,6 +25,7 @@ export const parseSalaryFromText = (
 
   const minDigits = match[1];
   const maxDigits = match[3];
+  // istanbul ignore next — regex groups 1 and 3 are required; undefined is unreachable
   if (!minDigits || !maxDigits) return { min: null, max: null };
 
   const min = toAmount(minDigits, match[2]);

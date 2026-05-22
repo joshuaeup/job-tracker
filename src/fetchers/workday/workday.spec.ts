@@ -116,6 +116,19 @@ describe('fetchWorkday', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('returns an empty array when jobPostings is absent from the response', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({ total: 0 }),
+      } as Response);
+
+      const result = await fetchWorkday(makeWorkdayConfig());
+
+      expect(result).toHaveLength(0);
+    });
+
     it('constructs the correct API URL from the slug', async () => {
       const spy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: true,

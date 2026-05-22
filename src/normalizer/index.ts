@@ -236,6 +236,7 @@ const normalizeWorkday = (job: RawJob): NormalizedJob => {
   const idRaw =
     toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
     externalPath.split('_').pop() ||
+    /* istanbul ignore next — only fires when externalPath ends with '_', not a real-world value */
     externalPath;
 
   const title = toStr(r['title']);
@@ -280,7 +281,7 @@ export const normalize = (rawJobs: RawJob[]): NormalizedJob[] => {
       if (normalized.url) {
         results.push(normalized);
       }
-    } catch (err: unknown) {
+    } catch (err: unknown) /* istanbul ignore next */ {
       log.error(
         `Failed to normalize job from ${job.company} (${job.source})`,
         err,

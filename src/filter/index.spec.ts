@@ -47,6 +47,14 @@ describe('filter', () => {
       expect(result).toHaveLength(1);
     });
 
+    it('passes jobs located in Charlotte even when not flagged remote', () => {
+      const result = filter([
+        makePassingJob({ location: 'Charlotte, NC', remote: false }),
+      ]);
+
+      expect(result).toHaveLength(1);
+    });
+
     it('passes jobs with no location set', () => {
       const result = filter([makePassingJob({ location: '', remote: false })]);
 

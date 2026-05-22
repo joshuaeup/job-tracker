@@ -28,6 +28,7 @@ const stripHtml = (html: string): string =>
 //   -> https://vanguard.wd5.myworkdayjobs.com/wday/cxs/vanguard/vanguard_external/job/...
 const toWorkdayCxsUrl = (jobUrl: string): string => {
   const parsed = new URL(jobUrl);
+  // istanbul ignore next — split always produces at least one element; '' is unreachable
   const company = parsed.hostname.split('.')[0] ?? '';
   const cxsPath = parsed.pathname.replace('/en-US/', `/wday/cxs/${company}/`);
   return `${parsed.origin}${cxsPath}`;
@@ -69,6 +70,7 @@ export const fetchWorkday = async (
 
   const hostPrefix = config.slug.slice(0, slashIndex);
   const cxsPath = config.slug.slice(slashIndex + 1);
+  // istanbul ignore next — pop() is undefined only on empty arrays; split never returns []
   const siteName = cxsPath.split('/').pop() ?? cxsPath;
   const baseUrl = `https://${hostPrefix}.myworkdayjobs.com`;
   const jobUrlBase = `${baseUrl}/en-US/${siteName}`;
