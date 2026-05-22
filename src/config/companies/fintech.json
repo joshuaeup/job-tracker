@@ -4,5 +4,11 @@
   { "name": "Nerd Wallet", "ats": "ashby", "slug": "nerdwallet", "enabled": true },
   { "name": "Plaid", "ats": "ashby", "slug": "plaid", "enabled": true },
   { "name": "Ramp", "ats": "ashby", "slug": "ramp", "enabled": true },
-  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": true }
+  { "name": "Stripe", "ats": "greenhouse", "slug": "stripe", "enabled": true },
+  {
+    "name": "Vanguard",
+    "ats": "workday",
+    "slug": "vanguard.wd5/vanguard/vanguard_external",
+    "enabled": true
+  }
 ]

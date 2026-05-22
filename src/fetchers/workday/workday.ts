@@ -24,13 +24,16 @@ export const fetchWorkday = async (
 
   const hostPrefix = config.slug.slice(0, slashIndex);
   const cxsPath = config.slug.slice(slashIndex + 1);
+  const siteName = cxsPath.split('/').pop() ?? cxsPath;
   const baseUrl = `https://${hostPrefix}.myworkdayjobs.com`;
+  const jobUrlBase = `${baseUrl}/en-US/${siteName}`;
   const apiUrl = `${baseUrl}/wday/cxs/${cxsPath}/jobs`;
 
   const allPostings: WorkdayJob[] = [];
   let offset = 0;
+  let total = Infinity;
 
-  while (true) {
+  while (allPostings.length < total) {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,11 +54,12 @@ export const fetchWorkday = async (
     const data = (await response.json()) as WorkdayResponse;
     const page: WorkdayJob[] = data.jobPostings ?? [];
 
+    // Workday only returns the correct total on the first page; capture it once.
+    if (offset === 0 && data.total > 0) total = data.total;
+
     allPostings.push(...page);
 
-    if (allPostings.length >= data.total || page.length < PAGE_SIZE) {
-      break;
-    }
+    if (page.length < PAGE_SIZE) break;
 
     offset += PAGE_SIZE;
   }
@@ -65,7 +69,7 @@ export const fetchWorkday = async (
     company: config.name,
     raw: {
       ...(item as unknown as Record<string, unknown>),
-      __baseUrl: baseUrl,
+      __baseUrl: jobUrlBase,
     },
   }));
 };
