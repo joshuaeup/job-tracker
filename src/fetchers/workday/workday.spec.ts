@@ -5,7 +5,7 @@ import {
   fakeWorkdayResponse,
 } from './factories/workday.factory.js';
 import { makeWorkdayConfig, mockFetch } from './mocks/workday.mocks.js';
-import { fetchWorkday } from './workday.js';
+import { fetchWorkday, fetchWorkdayDescription } from './workday.js';
 
 beforeEach(() => {
   jest.restoreAllMocks();
@@ -96,8 +96,7 @@ describe('fetchWorkday', () => {
           ok: true,
           status: 200,
           statusText: 'OK',
-          json: () =>
-            Promise.resolve({ jobPostings: thirdPageJobs, total: 0 }),
+          json: () => Promise.resolve({ jobPostings: thirdPageJobs, total: 0 }),
         } as Response);
 
       const result = await fetchWorkday(makeWorkdayConfig());
@@ -157,6 +156,106 @@ describe('fetchWorkday', () => {
       await expect(
         fetchWorkday(makeWorkdayConfig({ name: 'Globex' })),
       ).rejects.toThrow('Globex');
+    });
+  });
+});
+
+describe('fetchWorkdayDescription', () => {
+  // ── Success scenarios ──────────────────────────────────────────────────────
+
+  describe('when the detail endpoint returns a description', () => {
+    it('fetches the CXS URL derived from the en-US job URL', async () => {
+      const spy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ jobPostingInfo: { jobDescription: '' } }),
+      } as Response);
+
+      await fetchWorkdayDescription(
+        'https://vanguard.wd5.myworkdayjobs.com/en-US/vanguard_external/job/Charlotte-NC/Engineer_177694',
+      );
+
+      expect(spy).toHaveBeenCalledWith(
+        'https://vanguard.wd5.myworkdayjobs.com/wday/cxs/vanguard/vanguard_external/job/Charlotte-NC/Engineer_177694',
+      );
+    });
+
+    it('returns plain text with HTML tags stripped', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            jobPostingInfo: {
+              jobDescription: '<p>We offer <b>$130,000</b> – $160,000.</p>',
+            },
+          }),
+      } as Response);
+
+      const result = await fetchWorkdayDescription(
+        'https://acme.wd5.myworkdayjobs.com/en-US/acme_jobs/job/Remote/Eng_1',
+      );
+
+      expect(result).not.toContain('<');
+      expect(result).toContain('$130,000');
+    });
+
+    it('decodes HTML entities before stripping tags', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            jobPostingInfo: {
+              jobDescription:
+                '&lt;span&gt;$165,000&lt;/span&gt;&amp;mdash;&lt;span&gt;$180,000&lt;/span&gt;',
+            },
+          }),
+      } as Response);
+
+      const result = await fetchWorkdayDescription(
+        'https://acme.wd5.myworkdayjobs.com/en-US/acme_jobs/job/Remote/Eng_1',
+      );
+
+      expect(result).toContain('$165,000');
+      expect(result).toContain('$180,000');
+      expect(result).not.toContain('<');
+    });
+  });
+
+  // ── Edge cases ─────────────────────────────────────────────────────────────
+
+  describe('edge cases', () => {
+    it('returns an empty string when jobDescription is absent', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ jobPostingInfo: {} }),
+      } as Response);
+
+      const result = await fetchWorkdayDescription(
+        'https://acme.wd5.myworkdayjobs.com/en-US/acme_jobs/job/Remote/Eng_1',
+      );
+
+      expect(result).toBe('');
+    });
+  });
+
+  // ── Error states ───────────────────────────────────────────────────────────
+
+  describe('error states', () => {
+    it('returns an empty string when the fetch response is not OK', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({}),
+      } as Response);
+
+      const result = await fetchWorkdayDescription(
+        'https://acme.wd5.myworkdayjobs.com/en-US/acme_jobs/job/Remote/Eng_1',
+      );
+
+      expect(result).toBe('');
     });
   });
 });

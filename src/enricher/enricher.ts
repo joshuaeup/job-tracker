@@ -1,50 +1,12 @@
+import { fetchWorkdayDescription } from '../fetchers/workday/workday.js';
 import { createLogger } from '../lib/logger.js';
 import type { NormalizedJob } from '../types/index.js';
 import { parseSalaryFromText } from './salary-parser.js';
 
 const WORKDAY_RATE_DELAY_MS = 150;
 
-type WorkdayDetailResponse = {
-  jobPostingInfo?: {
-    jobDescription?: string;
-  };
-};
-
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
-
-const stripHtml = (html: string): string =>
-  html
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&mdash;/g, '—')
-    .replace(/&ndash;/g, '–')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-
-// Transforms the stored en-US job URL to the internal CXS API detail endpoint.
-// e.g. https://vanguard.wd5.myworkdayjobs.com/en-US/vanguard_external/job/...
-//   -> https://vanguard.wd5.myworkdayjobs.com/wday/cxs/vanguard/vanguard_external/job/...
-const toWorkdayCxsUrl = (jobUrl: string): string => {
-  const parsed = new URL(jobUrl);
-  const company = parsed.hostname.split('.')[0] ?? '';
-  const cxsPath = parsed.pathname.replace('/en-US/', `/wday/cxs/${company}/`);
-  return `${parsed.origin}${cxsPath}`;
-};
-
-const fetchWorkdayDescription = async (jobUrl: string): Promise<string> => {
-  const cxsUrl = toWorkdayCxsUrl(jobUrl);
-  const response = await fetch(cxsUrl);
-  if (!response.ok) return '';
-  const data = (await response.json()) as WorkdayDetailResponse;
-  const html = data.jobPostingInfo?.jobDescription ?? '';
-  return html ? stripHtml(html) : '';
-};
 
 /**
  * Enriches a filtered job list with descriptions and parsed salary ranges.
