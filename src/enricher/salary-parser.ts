@@ -1,10 +1,10 @@
 const MIN_SALARY = 30_000;
 const MAX_SALARY = 600_000;
 
-// Matches: $120,000 – $150,000 | $120k - $150k | $120,000 to $150,000
+// Matches: $120,000 – $150,000 | $120k - $150k | $160,900.00 - $257,100.00
 // Second $ sign is optional. Handles –, —, -, and "to" as separators.
 const SALARY_RE =
-  /\$\s*([\d,]+)\s*([kK])?\s*(?:–|—|-|to)\s*\$?\s*([\d,]+)\s*([kK])?/i;
+  /\$\s*([\d,]+(?:\.\d+)?)\s*([kK])?\s*(?:–|—|-|to)\s*\$?\s*([\d,]+(?:\.\d+)?)\s*([kK])?/i;
 
 const toAmount = (digits: string, k: string | undefined): number => {
   const n = parseFloat(digits.replace(/,/g, ''));

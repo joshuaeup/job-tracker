@@ -45,6 +45,14 @@ describe('parseSalaryFromText', () => {
       });
     });
 
+    it('parses a range with decimal amounts', () => {
+      expect(
+        parseSalaryFromText(
+          'The base pay range is $160,900.00 - $257,100.00 annually.',
+        ),
+      ).toEqual({ min: 160_900, max: 257_100 });
+    });
+
     it('finds the range even when surrounded by HTML-stripped prose', () => {
       const text =
         'We offer competitive pay. The range for this role is $95,000 – $125,000. Benefits include…';
@@ -56,9 +64,9 @@ describe('parseSalaryFromText', () => {
 
   describe('edge cases', () => {
     it('returns null for both fields when no salary appears', () => {
-      expect(parseSalaryFromText('Great opportunity to join our team.')).toEqual(
-        { min: null, max: null },
-      );
+      expect(
+        parseSalaryFromText('Great opportunity to join our team.'),
+      ).toEqual({ min: null, max: null });
     });
 
     it('returns null when the range is an hourly rate (below minimum)', () => {
