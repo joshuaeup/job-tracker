@@ -4,6 +4,7 @@ import { Client } from '@notionhq/client';
 
 import { companies } from './config/companies/index.js';
 import { deduplicate } from './dedup/notion.js';
+import { enrich } from './enricher/enricher.js';
 import { fetchAll } from './fetchers/index.js';
 import { filter } from './filter/index.js';
 import { createLogger } from './lib/logger.js';
@@ -45,7 +46,9 @@ const run = async (): Promise<void> => {
     const filtered = filter(normalized);
     summary.filtered = filtered.length;
 
-    const newJobs = await deduplicate(notion, notionDatabaseId, filtered);
+    const enriched = await enrich(filtered);
+
+    const newJobs = await deduplicate(notion, notionDatabaseId, enriched);
     summary.deduplicated = newJobs.length;
 
     if (newJobs.length === 0) {
