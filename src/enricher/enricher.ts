@@ -22,6 +22,8 @@ const stripHtml = (html: string): string =>
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
     .replace(/\s{2,}/g, ' ')
     .trim();
 
@@ -54,7 +56,9 @@ const fetchWorkdayDescription = async (jobUrl: string): Promise<string> => {
  *
  * @returns A copy of each job with descriptionText and salary fields updated.
  */
-export const enrich = async (jobs: NormalizedJob[]): Promise<NormalizedJob[]> => {
+export const enrich = async (
+  jobs: NormalizedJob[],
+): Promise<NormalizedJob[]> => {
   const log = createLogger('ENRICH');
   const results: NormalizedJob[] = [];
   let workdayFetched = 0;
@@ -68,7 +72,9 @@ export const enrich = async (jobs: NormalizedJob[]): Promise<NormalizedJob[]> =>
       try {
         description = await fetchWorkdayDescription(job.url);
       } catch {
-        log.warn(`Failed to fetch description for "${job.title}" at ${job.company}`);
+        log.warn(
+          `Failed to fetch description for "${job.title}" at ${job.company}`,
+        );
       }
       workdayFetched++;
     }
@@ -80,7 +86,12 @@ export const enrich = async (jobs: NormalizedJob[]): Promise<NormalizedJob[]> =>
 
     if (!alreadyHasSalary && min !== null) salaryFound++;
 
-    results.push({ ...job, descriptionText: description, salaryMin: min, salaryMax: max });
+    results.push({
+      ...job,
+      descriptionText: description,
+      salaryMin: min,
+      salaryMax: max,
+    });
   }
 
   log.info(`Enriched ${results.length} jobs — salary found for ${salaryFound}`);

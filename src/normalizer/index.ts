@@ -22,6 +22,8 @@ const stripHtml = (html: string): string =>
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
     .replace(/\s{2,}/g, ' ')
     .trim();
 

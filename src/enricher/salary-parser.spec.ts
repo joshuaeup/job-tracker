@@ -38,6 +38,13 @@ describe('parseSalaryFromText', () => {
       });
     });
 
+    it('parses a range where the dash was an HTML &mdash; entity', () => {
+      expect(parseSalaryFromText('Pay Range $165,000—$180,000 USD')).toEqual({
+        min: 165_000,
+        max: 180_000,
+      });
+    });
+
     it('parses when the second dollar sign is omitted', () => {
       expect(parseSalaryFromText('$120,000 - 150,000')).toEqual({
         min: 120_000,
