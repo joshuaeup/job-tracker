@@ -1,5 +1,9 @@
 import { fakeNormalizedJob } from '../testing/factories/normalized-job.factory.js';
-import { makeMockNotion } from './mocks/notion.mocks.js';
+import {
+  makeMockNotion,
+  makeMockNotionWithMalformedPages,
+  makePaginatedMockNotion,
+} from './mocks/notion.mocks.js';
 import { deduplicate } from './notion.js';
 
 describe('deduplicate', () => {
@@ -69,6 +73,23 @@ describe('deduplicate', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('collects seen URLs across multiple pages when has_more is true', async () => {
+      const notion = makePaginatedMockNotion(
+        ['https://example.com/job1'],
+        ['https://example.com/job2'],
+      );
+      const jobs = [
+        fakeNormalizedJob({ url: 'https://example.com/job1' }),
+        fakeNormalizedJob({ url: 'https://example.com/job2' }),
+        fakeNormalizedJob({ url: 'https://example.com/job3' }),
+      ];
+
+      const result = await deduplicate(notion, 'db-id', jobs);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.url).toBe('https://example.com/job3');
+    });
+
     it('does exact URL matching — a URL prefix does not count as seen', async () => {
       const notion = makeMockNotion(['https://example.com/jobs/12']);
       const jobs = [fakeNormalizedJob({ url: 'https://example.com/jobs/123' })];
@@ -76,6 +97,21 @@ describe('deduplicate', () => {
       const result = await deduplicate(notion, 'db-id', jobs);
 
       expect(result).toHaveLength(1);
+    });
+
+    it('skips pages without properties, wrong property type, and empty URL', async () => {
+      const notion = makeMockNotionWithMalformedPages([
+        'https://example.com/job-valid',
+      ]);
+      const jobs = [
+        fakeNormalizedJob({ url: 'https://example.com/job-valid' }),
+        fakeNormalizedJob({ url: 'https://example.com/job-new' }),
+      ];
+
+      const result = await deduplicate(notion, 'db-id', jobs);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.url).toBe('https://example.com/job-new');
     });
   });
 

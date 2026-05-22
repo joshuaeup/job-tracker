@@ -31,6 +31,7 @@ const normalizeLocationLabel = (location: string, remote: boolean): string => {
 
   // Notion select options don't allow commas — use only the first segment
   // (e.g. "San Francisco, California" → "San Francisco")
+  // istanbul ignore next — split always returns at least one element; ?? is unreachable
   return location.split(',')[0]?.trim() ?? location;
 };
 

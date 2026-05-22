@@ -53,6 +53,19 @@ describe('fetchAshby', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('returns an empty array when the jobs field is absent from the response', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({}),
+      } as Response);
+
+      const result = await fetchAshby(makeAshbyConfig());
+
+      expect(result).toHaveLength(0);
+    });
+
     it('constructs the correct API URL from the slug', async () => {
       const spy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: true,
@@ -64,7 +77,7 @@ describe('fetchAshby', () => {
       await fetchAshby(makeAshbyConfig({ slug: 'my-company' }));
 
       expect(spy).toHaveBeenCalledWith(
-        'https://api.ashbyhq.com/posting-api/job-board/my-company',
+        'https://api.ashbyhq.com/posting-api/job-board/my-company?includeCompensation=true',
       );
     });
   });

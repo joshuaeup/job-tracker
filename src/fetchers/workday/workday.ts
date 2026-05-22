@@ -3,6 +3,52 @@ import type { WorkdayJob, WorkdayResponse } from './types.js';
 
 const PAGE_SIZE = 20;
 
+type WorkdayDetailResponse = {
+  jobPostingInfo?: {
+    jobDescription?: string;
+  };
+};
+
+const stripHtml = (html: string): string =>
+  html
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+// Transforms the stored en-US job URL to the internal CXS API detail endpoint.
+// e.g. https://vanguard.wd5.myworkdayjobs.com/en-US/vanguard_external/job/...
+//   -> https://vanguard.wd5.myworkdayjobs.com/wday/cxs/vanguard/vanguard_external/job/...
+const toWorkdayCxsUrl = (jobUrl: string): string => {
+  const parsed = new URL(jobUrl);
+  // istanbul ignore next — split always produces at least one element; '' is unreachable
+  const company = parsed.hostname.split('.')[0] ?? '';
+  const cxsPath = parsed.pathname.replace('/en-US/', `/wday/cxs/${company}/`);
+  return `${parsed.origin}${cxsPath}`;
+};
+
+/**
+ * Fetches the full job description for a single Workday posting.
+ * Returns an empty string if the fetch fails or the description is absent.
+ */
+export const fetchWorkdayDescription = async (
+  jobUrl: string,
+): Promise<string> => {
+  const cxsUrl = toWorkdayCxsUrl(jobUrl);
+  const response = await fetch(cxsUrl);
+  if (!response.ok) return '';
+  const data = (await response.json()) as WorkdayDetailResponse;
+  const html = data.jobPostingInfo?.jobDescription ?? '';
+  return html ? stripHtml(html) : '';
+};
+
 /**
  * Fetches all job postings for a company from the Workday ATS public API.
  *
@@ -24,6 +70,7 @@ export const fetchWorkday = async (
 
   const hostPrefix = config.slug.slice(0, slashIndex);
   const cxsPath = config.slug.slice(slashIndex + 1);
+  // istanbul ignore next — pop() is undefined only on empty arrays; split never returns []
   const siteName = cxsPath.split('/').pop() ?? cxsPath;
   const baseUrl = `https://${hostPrefix}.myworkdayjobs.com`;
   const jobUrlBase = `${baseUrl}/en-US/${siteName}`;

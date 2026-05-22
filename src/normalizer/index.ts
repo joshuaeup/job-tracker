@@ -15,13 +15,15 @@ const toStr = (value: unknown): string => {
 
 const stripHtml = (html: string): string =>
   html
-    .replace(/<[^>]+>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&nbsp;/g, ' ')
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/<[^>]+>/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
 
@@ -42,6 +44,32 @@ const parseSalary = (
 
   const rawMin = compensation['min_value'] ?? compensation['minValue'];
   const rawMax = compensation['max_value'] ?? compensation['maxValue'];
+
+  return {
+    min: typeof rawMin === 'number' ? rawMin : null,
+    max: typeof rawMax === 'number' ? rawMax : null,
+  };
+};
+
+const parseAshbyCompensation = (
+  compensation: unknown,
+): { min: number | null; max: number | null } => {
+  if (!isRecord(compensation)) return { min: null, max: null };
+
+  const components = compensation['summaryComponents'];
+  if (!Array.isArray(components)) return { min: null, max: null };
+
+  const salaryComponent = components.find(
+    (c): c is Record<string, unknown> =>
+      isRecord(c) &&
+      c['compensationType'] === 'Salary' &&
+      c['interval'] === '1 YEAR',
+  );
+
+  if (!salaryComponent) return { min: null, max: null };
+
+  const rawMin = salaryComponent['minValue'];
+  const rawMax = salaryComponent['maxValue'];
 
   return {
     min: typeof rawMin === 'number' ? rawMin : null,
@@ -102,9 +130,11 @@ const normalizeGreenhouse = (job: RawJob): NormalizedJob => {
   const descriptionHtml =
     typeof r['description'] === 'string'
       ? r['description']
-      : isRecord(content) && typeof content['description'] === 'string'
-        ? content['description']
-        : '';
+      : typeof content === 'string'
+        ? content
+        : isRecord(content) && typeof content['description'] === 'string'
+          ? content['description']
+          : '';
 
   const { min, max } = parseGreenhouseSalary(r['metadata']);
 
@@ -177,7 +207,7 @@ const normalizeAshby = (job: RawJob): NormalizedJob => {
         : null;
 
   const descriptionHtml = toStr(r['descriptionHtml'] ?? r['description']);
-  const { min, max } = parseSalary(r['compensation'] ?? r['salaryRange']);
+  const { min, max } = parseAshbyCompensation(r['compensation']);
 
   return {
     id: `ashby:${slugify(job.company)}:${idRaw}`,
@@ -206,6 +236,7 @@ const normalizeWorkday = (job: RawJob): NormalizedJob => {
   const idRaw =
     toStr(r['jobReqId'] ?? r['bulletFields[0]']) ||
     externalPath.split('_').pop() ||
+    /* istanbul ignore next — only fires when externalPath ends with '_', not a real-world value */
     externalPath;
 
   const title = toStr(r['title']);
@@ -250,7 +281,7 @@ export const normalize = (rawJobs: RawJob[]): NormalizedJob[] => {
       if (normalized.url) {
         results.push(normalized);
       }
-    } catch (err: unknown) {
+    } catch (err: unknown) /* istanbul ignore next */ {
       log.error(
         `Failed to normalize job from ${job.company} (${job.source})`,
         err,

@@ -102,6 +102,31 @@ describe('sendReviewDigest', () => {
       const body = JSON.parse(init.body as string) as { text: string };
       expect(body.text).toContain('Not listed');
     });
+
+    it('shows min+ when only min salary is available', async () => {
+      const spy = mockSlackFetch();
+      const job = fakeNormalizedJob({ salaryMin: 120_000, salaryMax: null });
+
+      await sendReviewDigest(WEBHOOK_URL, DATE, [job]);
+
+      const [, init] = spy.mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(init.body as string) as { text: string };
+      expect(body.text).toContain('120,000+');
+    });
+
+    it('shows the location string when the job is not remote', async () => {
+      const spy = mockSlackFetch();
+      const job = fakeNormalizedJob({
+        remote: false,
+        location: 'Charlotte, NC',
+      });
+
+      await sendReviewDigest(WEBHOOK_URL, DATE, [job]);
+
+      const [, init] = spy.mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(init.body as string) as { text: string };
+      expect(body.text).toContain('Charlotte, NC');
+    });
   });
 
   // ── Error states ───────────────────────────────────────────────────────────

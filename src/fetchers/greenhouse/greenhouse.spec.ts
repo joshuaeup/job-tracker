@@ -58,6 +58,19 @@ describe('fetchGreenhouse', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('returns an empty array when the jobs field is absent from the response', async () => {
+      jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: () => Promise.resolve({}),
+      } as Response);
+
+      const result = await fetchGreenhouse(makeGreenhouseConfig());
+
+      expect(result).toHaveLength(0);
+    });
+
     it('constructs the correct API URL including the content param', async () => {
       const spy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: true,

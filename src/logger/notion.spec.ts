@@ -57,6 +57,106 @@ describe('logJobsToNotion', () => {
     });
   });
 
+  describe('location normalisation', () => {
+    const locationCases: Array<[string, boolean, string]> = [
+      ['Charlotte, NC', false, 'Charlotte NC'],
+      ['New York City', false, 'New York'],
+      ['NYC office', false, 'New York'],
+      ['somewhere in NY', false, 'New York'],
+      ['London, UK', false, 'London'],
+      ['Fort Mill, SC', false, 'Fort Mill SC'],
+      ['Remote - US', false, 'Remote'],
+      ['San Francisco, California', false, 'San Francisco'],
+      ['Austin', false, 'Austin'],
+    ];
+
+    it.each(locationCases)(
+      'maps "%s" (remote=%s) to "%s"',
+      async (location, remote, expected) => {
+        const notion = makeMockNotionLogger();
+        const job = fakeNormalizedJob({ location, remote });
+
+        await logJobsToNotion(notion, 'db-id', [job]);
+
+        expect(notion.pages.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              Location: { select: { name: expected } },
+            }),
+          }),
+        );
+      },
+    );
+
+    it('uses "Remote" for a job flagged remote regardless of location string', async () => {
+      const notion = makeMockNotionLogger();
+      const job = fakeNormalizedJob({ remote: true, location: 'New York' });
+
+      await logJobsToNotion(notion, 'db-id', [job]);
+
+      expect(notion.pages.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            Location: { select: { name: 'Remote' } },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('salary formatting', () => {
+    it('shows min–max range when both salary values are present', async () => {
+      const notion = makeMockNotionLogger();
+      const job = fakeNormalizedJob({ salaryMin: 120_000, salaryMax: 160_000 });
+
+      await logJobsToNotion(notion, 'db-id', [job]);
+
+      expect(notion.pages.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            'Salary Range': {
+              rich_text: [{ text: { content: '$120,000–$160,000' } }],
+            },
+          }),
+        }),
+      );
+    });
+
+    it('shows min+ when only salaryMin is present', async () => {
+      const notion = makeMockNotionLogger();
+      const job = fakeNormalizedJob({ salaryMin: 100_000, salaryMax: null });
+
+      await logJobsToNotion(notion, 'db-id', [job]);
+
+      expect(notion.pages.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            'Salary Range': {
+              rich_text: [{ text: { content: '$100,000+' } }],
+            },
+          }),
+        }),
+      );
+    });
+
+    it('shows "Not listed" when salary is absent', async () => {
+      const notion = makeMockNotionLogger();
+      const job = fakeNormalizedJob({ salaryMin: null, salaryMax: null });
+
+      await logJobsToNotion(notion, 'db-id', [job]);
+
+      expect(notion.pages.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            'Salary Range': {
+              rich_text: [{ text: { content: 'Not listed' } }],
+            },
+          }),
+        }),
+      );
+    });
+  });
+
   // ── Edge cases ─────────────────────────────────────────────────────────────
 
   describe('edge cases', () => {
