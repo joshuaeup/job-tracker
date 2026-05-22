@@ -24,7 +24,9 @@ export const fetchWorkday = async (
 
   const hostPrefix = config.slug.slice(0, slashIndex);
   const cxsPath = config.slug.slice(slashIndex + 1);
+  const siteName = cxsPath.split('/').pop() ?? cxsPath;
   const baseUrl = `https://${hostPrefix}.myworkdayjobs.com`;
+  const jobUrlBase = `${baseUrl}/en-US/${siteName}`;
   const apiUrl = `${baseUrl}/wday/cxs/${cxsPath}/jobs`;
 
   const allPostings: WorkdayJob[] = [];
@@ -67,7 +69,7 @@ export const fetchWorkday = async (
     company: config.name,
     raw: {
       ...(item as unknown as Record<string, unknown>),
-      __baseUrl: baseUrl,
+      __baseUrl: jobUrlBase,
     },
   }));
 };

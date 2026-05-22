@@ -41,7 +41,7 @@ describe('fetchWorkday', () => {
       );
 
       expect((result[0]?.raw as { __baseUrl: string }).__baseUrl).toBe(
-        'https://acme.wd5.myworkdayjobs.com',
+        'https://acme.wd5.myworkdayjobs.com/en-US/search',
       );
     });
 
