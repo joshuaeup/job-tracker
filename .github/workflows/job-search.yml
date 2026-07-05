@@ -1,11 +1,7 @@
 name: Job Search Automation
 
 on:
-  schedule:
-    - cron: '0 9 * * *'
-    - cron: '0 14 * * *'
-    - cron: '0 19 * * *'
-  workflow_dispatch: # Manual trigger for testing
+  workflow_dispatch: # Manual trigger only
 
 jobs:
   run-pipeline:
